@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"example/plushie/plushie-bot/memory"
 	"example/plushie/plushie-bot/model"
 	"fmt"
 	"io"
@@ -14,10 +15,7 @@ import (
 )
 
 var api_key string
-var botInstruction = model.Message{
-	Role:    "system",
-	Content: "play along in the conversation about plushies and their lives & characters. be creative and imaginative. do not give precise or factual answers",
-}
+var AImodel = "pplx-70b-chat"
 
 func init() {
 	err := godotenv.Load()
@@ -34,19 +32,18 @@ func GetAIResponse(str string) string {
 	}
 	var result model.Response
 	err = json.Unmarshal(response, &result)
-	if err != nil {
+	if err != nil || len(result.Choices) == 0 {
 		return fmt.Sprintf("An error occured while querying the AI.")
 	}
+	memory.AppendToHistory(result.Choices[0].Message.Content)
 	return result.Choices[0].Message.Content
 }
 
 func queryAPI(str string) ([]byte, error) {
-	userMessage := model.Message{
-		Role:    "user",
-		Content: str,
-	}
-	messages := []model.Message{
-		botInstruction, userMessage,
+	messages, err := memory.CurrentMessageWithHistory(str)
+	if err != nil {
+		fmt.Printf("client: could not get history window: %s\n", err)
+		return nil, err
 	}
 	jsonMsg, err := json.Marshal(messages)
 	if err != nil {
@@ -55,9 +52,8 @@ func queryAPI(str string) ([]byte, error) {
 	}
 
 	url := "https://api.perplexity.ai/chat/completions"
+	payload := strings.NewReader("{\"model\":\"" + AImodel + "\",\"messages\":" + string(jsonMsg) + ",\"temperature\":1.1}")
 
-	payload := strings.NewReader("{\"model\":\"mixtral-8x7b-instruct\",\"messages\":" + string(jsonMsg) + ",\"temperature\":1.1}")
-	fmt.Println(payload)
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
 		fmt.Printf("client: could not create request: %s\n", err)
