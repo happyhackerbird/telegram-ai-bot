@@ -3,22 +3,22 @@ package memory
 import (
 	"errors"
 	"example/plushie/plushie-bot/model"
-	"fmt"
+	"log"
 	"strings"
 
 	"github.com/pandodao/tokenizer-go"
 )
 
-var systemText = "have a conversation with me about plushies and their lives & characters. be imaginative and creative. do not give precise or factual answers. do not invent new characters."
-var botInstruction = model.Message{
-	Role:    "system",
-	Content: systemText,
-}
-var globalHistory = []string{systemText}
-var answerLength = 218
-var contextLength = 4096
-
-// []model.Message{botInstruction}
+var (
+	systemText     = "have a conversation with me about plushies and their lives & characters. be imaginative and creative. do not give precise or factual answers. do not invent new characters."
+	botInstruction = model.Message{
+		Role:    "system",
+		Content: systemText,
+	}
+	globalHistory = []string{systemText}
+	answerLength  = 218  // number of tokens in medium length answer
+	contextLength = 4096 // LLM model context length
+)
 
 func CurrentMessageWithHistory(userMessage string) ([]model.Message, error) {
 	AppendToHistory(userMessage)
@@ -27,22 +27,17 @@ func CurrentMessageWithHistory(userMessage string) ([]model.Message, error) {
 		return nil, err
 	}
 	return getMsgObjects()
-	// appendToHistory(str)
-	// return GetAIResponse(globalHistory)
 }
 
 func getHistoryWindow() error {
 	userMsgTokenCount := tokenizer.MustCalToken(globalHistory[len(globalHistory)-1])
 
 	if userMsgTokenCount-answerLength > contextLength {
-		return errors.New("User message too long")
+		return errors.New("user message too long")
 	}
 	tokenCount := tokenizer.MustCalToken(strings.Join(globalHistory, "."))
-	// messages := []model.Message{
-	// 	botInstruction, userMessage,
-	// }
 
-	// use queue to remove the first element
+	// use dequeue to remove the first element
 	for tokenCount-answerLength > contextLength {
 		tokenCount -= tokenizer.MustCalToken(globalHistory[0])
 		globalHistory = globalHistory[1:]
@@ -61,14 +56,14 @@ func getMsgObjects() ([]model.Message, error) {
 		user = !user
 	}
 	if user {
-		return nil, errors.New("Error trying to resize the message history")
+		return nil, errors.New("error trying to resize the message history")
 	}
 	return msgObjects, nil
 }
 
 func AppendToHistory(str string) {
 	globalHistory = append(globalHistory, str)
-	fmt.Printf("new History: %v \n", globalHistory)
+	log.Printf("new History: %v \n", globalHistory)
 }
 
 func stringToMessage(user bool, str string) model.Message {
