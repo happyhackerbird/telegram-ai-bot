@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
-	"example/plushie/plushie-bot/memory"
+	memory "example/plushie/plushie-bot/database"
 	"example/plushie/plushie-bot/model"
 	"fmt"
 	"io"

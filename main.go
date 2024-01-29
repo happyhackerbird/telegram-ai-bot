@@ -1,74 +1,76 @@
 package main
 
 import (
-	"bufio"
-	"context"
-	"fmt"
-	"log"
-	"os"
-	"strings"
-	"unicode/utf8"
-
-	"example/plushie/plushie-bot/controllers"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/joho/godotenv"
+	"example/plushie/plushie-bot/bot"
 )
 
-var (
-	bot *tgbotapi.BotAPI
+// var (
+// 	bot *tgbotapi.BotAPI
 
-	teddy      = "\U0001F9F8"
-	r, _       = utf8.DecodeRuneInString(teddy)
-	intro      = fmt.Sprintf("Hello! I am Plushie bot. %v You may talk to me about plushies!", string(r))
-	statusText = "Plushies are happy and comfy."
+// 	teddy      = "\U0001F9F8"
+// 	r, _       = utf8.DecodeRuneInString(teddy)
+// 	intro      = fmt.Sprintf("Hello! I am Plushie bot. %v You may talk to me about plushies!", string(r))
+// 	statusText = "Plushies are happy and comfy."
 
-	// Menu texts
-	firstMenu  = fmt.Sprintf("<b>%v</b>\n\n%v", string(r), intro)
-	secondMenu = "<b>How to use me</b>\n\nTry out any of the following commands:\n\n /return <i>plushie*n</i> - return n plushies\n /status - get status of plushies\n\n Or talk to me about plushies!"
+// 	// Menu texts
+// 	firstMenu  = fmt.Sprintf("<b>%v</b>\n\n%v", string(r), intro)
+// 	secondMenu = "<b>How to use me</b>\n\nTry out any of the following commands:\n\n /return <i>plushie*n</i> - return n plushies\n /status - get status of plushies\n\n Or talk to me about plushies!"
 
-	// Button texts
-	startButton  = "Start"
-	returnButton = "Return Plushie"
-	statusButton = "Plushie Status"
+// 	// Button texts
+// 	startButton  = "Start"
+// 	returnButton = "Return Plushie"
+// 	statusButton = "Plushie Status"
 
-	// tutorialButton = "Tutorial"
+// 	// tutorialButton = "Tutorial"
 
-	// Keyboard layout for the first menu. One button, one row
-	firstMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(startButton, startButton),
-		),
-	)
+// 	// Keyboard layout for the first menu. One button, one row
+// 	firstMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
+// 		tgbotapi.NewInlineKeyboardRow(
+// 			tgbotapi.NewInlineKeyboardButtonData(startButton, startButton),
+// 		),
+// 	)
 
-	// Keyboard layout for the second menu. Two buttons, one per row
-	secondMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(returnButton, returnButton),
-		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(statusButton, statusButton),
-		),
-		// tgbotapi.NewInlineKeyboardRow(
-		// 	tgbotapi.NewInlineKeyboardButtonURL(tutorialButton, "https://core.telegram.org/bots/api"),
-		// ),
-	)
-)
+// 	// Keyboard layout for the second menu. Two buttons, one per row
+// 	secondMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
+// 		tgbotapi.NewInlineKeyboardRow(
+// 			tgbotapi.NewInlineKeyboardButtonData(returnButton, returnButton),
+// 		),
+// 		tgbotapi.NewInlineKeyboardRow(
+// 			tgbotapi.NewInlineKeyboardButtonData(statusButton, statusButton),
+// 		),
+// 		// tgbotapi.NewInlineKeyboardRow(
+// 		// 	tgbotapi.NewInlineKeyboardButtonURL(tutorialButton, "https://core.telegram.org/bots/api"),
+// 		// ),
+// 	)
+// )
 
 func main() {
-	err := godotenv.Load(".env")
 
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
-	bot, err = tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
-	if err != nil {
-		log.Fatalf("Error creating bot: %v", err)
-	}
-	// Set the bot to use debug mode (verbose logging).
-	bot.Debug = false
-	log.Printf("Authorized as @%s. %v", bot.Self.UserName, string(r))
+	/*
+			db, err := database.NewPostgresDB(cfg.Database)
+		if err != nil {
+			logger.Fatal("failed connect to DB", zap.String("reason", err.Error()))
+		}
+		err = database.Migrate(&cfg.Migration, logger)
+		if err != nil {
+			logger.Fatal("can't run db migrations", zap.String("reason", err.Error()))
+		}
 
+			repo := repository.Init(db)
+		svc := service.Init(repo)
+		flows := flow.Init(svc)
+
+		flows.ValidateCallbacksDataSize(&logger)
+
+		bot := bot.Init(cfg, &logger, flows, svc, repo)
+
+		bot.Run()
+	*/
+	bot := bot.Init()
+	bot.Run()
+}
+
+/*
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
@@ -89,29 +91,6 @@ func main() {
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 	cancel()
 
-	// // Create a new UpdateConfig struct with an offset of 0. Offsets are used
-	// // to make sure Telegram knows we've handled previous values and we don't
-	// // need them repeated.
-	// updateConfig := tgbotapi.NewUpdate(0)
-
-	// // Tell Telegram we should wait up to 30 seconds on each request for an
-	// // update. This way we can get information just as quickly as making many
-	// // frequent requests without having to send nearly as many.
-	// updateConfig.Timeout = 30
-
-	// // Start polling Telegram for updates.
-	// updates := bot.GetUpdatesChan(updateConfig)
-
-	// // // Let's go through each update that we're getting from Telegram.
-	// for update := range updates {
-	// 	// Telegram can send many types of updates depending on what your Bot
-	// 	// is up to. We only want to look at messages for now, so we can
-	// 	// discard	 any other updates.
-	// 	if update.Message == nil {
-	// 		continue
-	// 	}
-
-	// }
 }
 
 func receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesChannel) {
@@ -216,3 +195,4 @@ func sendMenu(msg *tgbotapi.MessageConfig, chatId int64) {
 	msg.ParseMode = tgbotapi.ModeHTML
 	msg.ReplyMarkup = firstMenuMarkup
 }
+*/
