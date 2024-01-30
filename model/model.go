@@ -1,6 +1,6 @@
 package model
 
-type Message struct {
+type AIMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
@@ -18,7 +18,7 @@ type Response struct {
 	Choices []struct {
 		Index         int    `json:"index"`
 		Finish_reason string `json:"finish_reason"`
-		Message       Message
-		Delta         Message
+		Message       AIMessage
+		Delta         AIMessage
 	}
 }

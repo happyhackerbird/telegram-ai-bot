@@ -1,7 +1,7 @@
 package main
 
 import (
-	"example/plushie/plushie-bot/bot"
+	"example/bot/telegram-ai-bot/bot"
 )
 
 func main() {

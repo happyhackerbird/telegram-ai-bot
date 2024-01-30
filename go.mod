@@ -1,4 +1,4 @@
-module example/plushie/plushie-bot
+module example/bot/telegram-ai-bot
 
 go 1.21.6
 

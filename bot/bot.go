@@ -3,7 +3,7 @@ package bot
 import (
 	"bufio"
 	"context"
-	"example/plushie/plushie-bot/model"
+	"example/bot/telegram-ai-bot/model"
 	"fmt"
 	"log"
 	"os"
@@ -17,9 +17,16 @@ type Bot struct {
 	API *tgbotapi.BotAPI
 	// Config     *config.Config
 	// Logger     *zap.Logger
-	// Flow model.Flow
+	Flow model.Flow
 	// Service    *service.Service
 	// Repository *repository.Repository
+		Profiles map[int64]Profile
+}
+
+type Profile struct {
+	Name       string
+	Instruction string
+	AIModel     string
 }
 
 var (
@@ -28,9 +35,9 @@ var (
 	r, _  = utf8.DecodeRuneInString(robot)
 
 	intro       = fmt.Sprintf("Hello! I am your AI assistant. %v You can configure me with a custom prompt. Type /start to begin.", string(r))
-	profileText = "Custom AI profile not set. Enter your custom AI assistant prompt by typing start."
+	// profileText = "Custom AI profile not set. Enter your custom AI assistant prompt by typing start."
 
-	startButton   = "Start"
+	startButton   = "Start (create new profile)"
 	profileButton = "Profile"
 	menu          = "<b>Instructions for the human</b>\n\n" + intro
 	menuMarkup    = tgbotapi.NewInlineKeyboardMarkup(
@@ -113,13 +120,17 @@ func (b *Bot) receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesChanne
 // configure the bot menu, don't use "start" command, but you can if you want
 func (b *Bot) InitBotCommands() tgbotapi.SetMyCommandsConfig {
 	commands := []model.CommandEntity{
+				{
+			Key:  model.StartCommand,
+			Name: "start",
+		},
 		{
 			Key:  model.ProfileCommand,
 			Name: "profile",
 		},
 		{
-			Key:  model.StartCommand,
-			Name: "start",
+			Key:  model.HelpCommand,
+			Name: "help",
 		},
 	}
 	tgCommands := make([]tgbotapi.BotCommand, 0, len(commands))

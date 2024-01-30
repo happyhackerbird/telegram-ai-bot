@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	memory "example/plushie/plushie-bot/database"
-	"example/plushie/plushie-bot/model"
+	memory "example/bot/telegram-ai-bot/database"
+	"example/bot/telegram-ai-bot/model"
 	"fmt"
 	"io"
 	"log"

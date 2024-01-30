@@ -18,6 +18,7 @@ const (
 	// consider "start" command only as a command to launch the bot, we do not use it when configuring the menu
 	StartCommand   = CommandKey("start")
 	ProfileCommand = CommandKey("profile")
+	HelpCommand    = CommandKey("help")
 	/*
 		add your commands here
 	*/

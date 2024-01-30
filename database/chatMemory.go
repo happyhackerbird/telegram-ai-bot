@@ -2,7 +2,7 @@ package memory
 
 import (
 	"errors"
-	"example/plushie/plushie-bot/model"
+	"example/bot/telegram-ai-bot/model"
 	"log"
 	"strings"
 
