@@ -1,4 +1,4 @@
-package memory
+package database
 
 import (
 	"errors"
@@ -11,15 +11,22 @@ import (
 )
 
 var (
-	systemText     = "have a conversation with me about plushies and their lives & characters. be imaginative and creative. do not give precise or factual answers. do not invent new characters."
+	systemText string
+	// systemText     = "have a conversation with me about plushies and their lives & characters. be imaginative and creative. do not give precise or factual answers. do not invent new characters."
+	botInstruction model.AIMessage
+	globalHistory  []string
+	answerLength   = 218  // number of tokens in medium length answer
+	contextLength  = 4096 // LLM model context length
+)
+
+func SetInstruction(prompt string) {
+	systemText = prompt
 	botInstruction = model.AIMessage{
 		Role:    "system",
 		Content: systemText,
 	}
-	globalHistory = []string{systemText}
-	answerLength  = 218  // number of tokens in medium length answer
-	contextLength = 4096 // LLM model context length
-)
+	globalHistory = append(globalHistory, systemText)
+}
 
 func CurrentMessageWithHistory(userMessage string) ([]model.AIMessage, error) {
 	AppendToHistory(userMessage)

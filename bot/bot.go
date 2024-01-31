@@ -3,12 +3,11 @@ package bot
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"log"
 	"os"
-	"unicode/utf8"
 
 	"example/bot/telegram-ai-bot/model"
+	"example/bot/telegram-ai-bot/services"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
@@ -21,36 +20,9 @@ type Bot struct {
 	Flow model.Flow
 	// Service    *service.Service
 	// Repository *repository.Repository
-	Profiles map[int64]Profile
+	Profiles   map[int64]Profile
 	userStates map[int64]int
 }
-
-type Profile struct {
-	Name        string
-	Instruction string
-	AIModel     string
-}
-
-var (
-	bot   Bot
-	robot = "\U0001F916"
-	r, _  = utf8.DecodeRuneInString(robot)
-
-	intro = fmt.Sprintf("Hello! I am your AI assistant. %v You can configure me with a custom prompt. Type /start to begin.", string(r))
-	// profileText = "Custom AI profile not set. Enter your custom AI assistant prompt by typing start."
-
-	startButton   = "Start (create new profile)"
-	profileButton = "Profile"
-	menu          = "<b>Instructions for the human</b>\n\n" + intro
-	menuMarkup    = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(startButton, startButton),
-		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(profileButton, profileButton),
-		),
-	)
-)
 
 func init() {
 	err := godotenv.Load(".env")
@@ -62,8 +34,8 @@ func init() {
 
 func Init(flow model.Flow) Bot {
 	return Bot{
-		Flow: flow,
-		Profiles: make(map[int64]Profile),
+		Flow:       flow,
+		Profiles:   make(map[int64]Profile),
 		userStates: make(map[int64]int),
 	}
 }
@@ -80,7 +52,7 @@ func (b *Bot) Run() {
 	// Set the bot to use debug mode (verbose logging).
 	bot.Debug = false
 
-	model.SetBot(b)
+	services.SetBot(b)
 
 	err = b.SetBotCommands()
 	if err != nil {
@@ -128,15 +100,15 @@ func (b *Bot) InitBotCommands() tgbotapi.SetMyCommandsConfig {
 	commands := []model.CommandEntity{
 		{
 			Key:  model.StartCommand,
-			Name: "start",
+			Name: "Start",
 		},
 		{
 			Key:  model.ProfileCommand,
-			Name: "profile",
+			Name: "Profile",
 		},
 		{
 			Key:  model.HelpCommand,
-			Name: "help",
+			Name: "Help",
 		},
 	}
 	tgCommands := make([]tgbotapi.BotCommand, 0, len(commands))

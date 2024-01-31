@@ -5,32 +5,19 @@ import (
 	// "fmt"
 	// "log"
 
-	"fmt"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 /*
 CommandFlow (starting a specific script (flow) for manipulating an object, is a command)
-		  |
-		  Usecase (actions that can be performed on an object)
+
+	  |
+	  Usecase (actions that can be performed on an object)
+			|
+			Chain (algorithm, sequence of steps to implement an action and obtain some result)
 				|
-				Chain (algorithm, sequence of steps to implement an action and obtain some result)
-					|
-					Step (certain, specific step, action)
+				Step (certain, specific step, action)
 */
-
-type Bot interface {
-	UpdateProfile(chatID int64, field, value string)
-	ShowProfile(msg *tgbotapi.MessageConfig, chatID int64)
-	StartProfileSetup(chatID int64)
-}
-
-var b Bot
-
-func SetBot(bot Bot) {
-	b = bot
-}
 
 type (
 	Flow    map[CommandKey]Usecase
@@ -56,7 +43,7 @@ type (
 // here is just a way to get a handler at the service level
 func (flow Flow) Handle(cd *CallbackData, updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
 	msg, err := flow[cd.CommandKey][cd.Case][cd.Step].Handler(updLocal)
-	fmt.Println("handling ", flow[cd.CommandKey][cd.Case][cd.Step])
+	// fmt.Println("handling ", flow[cd.CommandKey][cd.Case][cd.Step])
 	if err != nil {
 		return nil, err
 	}
@@ -83,59 +70,6 @@ func (flow Flow) Handle(cd *CallbackData, updLocal *UpdateLocal) (tgbotapi.Chatt
 	// 	}
 	// }
 
-	return msg, nil
-}
-
-func PromptProfileNameHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	chatID := int64(updLocal.TelegramChatID)
-	b.StartProfileSetup(chatID)
-	return tgbotapi.NewMessage(chatID, "Enter the name of the bot"), nil
-}
-
-func PromptInstructionHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	chatID := int64(updLocal.TelegramChatID)
-	// txt := fmt.Sprintf("Set the name: %v. \n\n Enter the instruction", userInput)
-	return tgbotapi.NewMessage(chatID, "Enter the instructions for the bot"), nil
-}
-
-func PromptAIModelHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	chatID := int64(updLocal.TelegramChatID)
-	// txt := fmt.Sprintf("Set the instruction: %v. \n\n Select AI model", userInput)
-
-	msg := tgbotapi.NewMessage(chatID, "Select the AI model")
-	msg.ParseMode = tgbotapi.ModeHTML
-	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Normal", "start;createProfile;2;mixtral-8x7b-instruct"),
-			tgbotapi.NewInlineKeyboardButtonData("Creative", "start;createProfile;2;llama-2-70b-chat"),
-		),
-	)
-	return msg, nil
-}
-
-func StoreAIModelHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	b.UpdateProfile(int64(updLocal.TelegramChatID), "AIModel", updLocal.CallbackData.Payload)
-	return tgbotapi.NewMessage(int64(updLocal.TelegramChatID), "Profile created"), nil
-}
-
-func ProfileOptionsHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	chatID := int64(updLocal.TelegramChatID)
-	msg := tgbotapi.NewMessage(chatID, "What do you want to do?")
-	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Create new profile", "createProfile")),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("View existing profiles", "viewProfiles"),
-		),
-	)
-	return msg, nil
-}
-
-func ViewProfilesHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	chatID := int64(updLocal.TelegramChatID)
-
-	msg := tgbotapi.NewMessage(chatID, "")
-	b.ShowProfile(&msg, chatID)
 	return msg, nil
 }
 

@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
-	memory "example/bot/telegram-ai-bot/database"
+	"example/bot/telegram-ai-bot/database"
 	"example/bot/telegram-ai-bot/model"
 	"fmt"
 	"io"
@@ -16,7 +16,9 @@ import (
 )
 
 var api_key string
-var AImodel = "pplx-70b-chat"
+var AIModel string
+
+// = "pplx-70b-chat"
 var temp = 1.1
 
 func init() {
@@ -27,26 +29,30 @@ func init() {
 	api_key = os.Getenv("AI_API_KEY")
 }
 
-func GetAIResponse(input string) string {
+func SetModel(m string) {
+	AIModel = m
+}
+
+func GetAIResponse(chatID int64, input string) string {
 	// query the api
-	response, err := queryAPI(input)
+	response, err := queryAPI(chatID, input)
 	if err != nil {
-		return fmt.Sprintf("An error occured while querying the AI.")
+		return ("An error occured while querying the AI.")
 	}
 	// get json response
 	var result model.Response
 	err = json.Unmarshal(response, &result)
 	if err != nil || len(result.Choices) == 0 {
-		return fmt.Sprintf("An error occured while querying the AI.")
+		return ("An error occured while querying the AI.")
 	}
 	// append the response to the history if valid
-	memory.AppendToHistory(result.Choices[0].Message.Content)
+	database.AppendToHistory(result.Choices[0].Message.Content)
 	return result.Choices[0].Message.Content
 }
 
-func queryAPI(input string) ([]byte, error) {
+func queryAPI(chatID int64, input string) ([]byte, error) {
 	// get a history window that fits the context length
-	messages, err := memory.CurrentMessageWithHistory(input)
+	messages, err := database.CurrentMessageWithHistory(input)
 	if err != nil {
 		fmt.Printf("client: could not get history window: %s\n", err)
 		return nil, err
@@ -59,10 +65,10 @@ func queryAPI(input string) ([]byte, error) {
 		return nil, err
 	}
 
+	s := strconv.FormatFloat(temp, 'f', -1, 64)
 	// build the request and send it
 	url := "https://api.perplexity.ai/chat/completions"
-	s := strconv.FormatFloat(temp, 'f', -1, 64)
-	payload := strings.NewReader("{\"model\":\"" + AImodel + "\",\"messages\":" + string(jsonMsg) + ",\"temperature\":\"" + s + "\"}")
+	payload := strings.NewReader("{\"model\":\"" + AIModel + "\",\"messages\":" + string(jsonMsg) + ",\"temperature\":\"" + s + "\"}")
 
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
