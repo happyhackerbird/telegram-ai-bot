@@ -17,8 +17,6 @@ import (
 
 var api_key string
 var AIModel string
-
-// = "pplx-70b-chat"
 var temp = 1.1
 
 func init() {

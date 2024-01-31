@@ -40,8 +40,9 @@ func PromptAIModelHandler(updLocal *model.UpdateLocal) (tgbotapi.Chattable, erro
 	msg.ParseMode = tgbotapi.ModeHTML
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Normal", "start;createProfile;2;mixtral-8x7b-instruct"),
-			tgbotapi.NewInlineKeyboardButtonData("Creative", "start;createProfile;2;llama-2-70b-chat"),
+			tgbotapi.NewInlineKeyboardButtonData("1", "start;createProfile;2;mixtral-8x7b-instruct"),
+			tgbotapi.NewInlineKeyboardButtonData("2", "start;createProfile;2;pplx-70b-chat"),
+			tgbotapi.NewInlineKeyboardButtonData("It's a surprise", "start;createProfile;2;codellama-70b-instruct"),
 		),
 	)
 	return msg, nil
@@ -51,7 +52,7 @@ func FinalizeProfileHandler(updLocal *model.UpdateLocal) (tgbotapi.Chattable, er
 	chatID := int64(updLocal.TelegramChatID)
 	b.UpdateProfile(chatID, "AIModel", updLocal.CallbackData.Payload)
 	b.FinishProfileSetup(chatID)
-	controllers.SetModel(updLocal.CallbackData.Payload)
+	controllers.SetModel(updLocal.CallbackData.Payload) // where does this go
 
 	return tgbotapi.NewMessage(int64(updLocal.TelegramChatID), "Profile created!"), nil
 }

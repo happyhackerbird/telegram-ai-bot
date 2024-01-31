@@ -47,29 +47,6 @@ func (flow Flow) Handle(cd *CallbackData, updLocal *UpdateLocal) (tgbotapi.Chatt
 	if err != nil {
 		return nil, err
 	}
-	// if cd.CommandKey == "start" {
-	// 	chatID := int64(updLocal.TelegramChatID)
-
-	// // Store the user input after each step
-	// switch cd.Step {
-	// case 0:
-	//    ProfileNameResponseHandler(updLocal, updLocal.)
-	// case 1:
-	// 	b.UpdateProfile(chatID, "Instruction", updLocal.CallbackData.Payload)
-	// case 2:
-	// 	b.UpdateProfile(chatID, "AIModel", updLocal.CallbackData.Payload)
-	// }
-	// } else if cd.CommandKey == "profile" {
-	// 	switch cd.Case {
-	// 	case "options":
-	// 		switch cd.Step {
-	// 		case 2:
-	// 			// Handle the viewing of existing profiles
-	// 			b.showProfile(msg, updLocal.TelegramChatID)
-	// 		}
-	// 	}
-	// }
-
 	return msg, nil
 }
 

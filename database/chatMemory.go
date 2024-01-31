@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	systemText string
-	// systemText     = "have a conversation with me about plushies and their lives & characters. be imaginative and creative. do not give precise or factual answers. do not invent new characters."
+	systemText     string
 	botInstruction model.AIMessage
 	globalHistory  []string
 	answerLength   = 218  // number of tokens in medium length answer
@@ -25,7 +24,7 @@ func SetInstruction(prompt string) {
 		Role:    "system",
 		Content: systemText,
 	}
-	globalHistory = append(globalHistory, systemText)
+	globalHistory = []string{systemText}
 }
 
 func CurrentMessageWithHistory(userMessage string) ([]model.AIMessage, error) {

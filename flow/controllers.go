@@ -28,7 +28,7 @@ func Init() model.Flow {
 					Message: model.Message{
 						Text: "Select the AI model",
 						Buttons: []model.Button{{
-							Name: "Normal",
+							Name: "1",
 							CallbackData: model.CallbackData{
 								CommandKey: "start",
 								Case:       "createProfile",
@@ -37,12 +37,21 @@ func Init() model.Flow {
 							},
 						},
 							{
-								Name: "Creative",
+								Name: "2",
 								CallbackData: model.CallbackData{
 									CommandKey: "start",
 									Case:       "createProfile",
 									Step:       2,
-									Payload:    "llama-2-70b-chat",
+									Payload:    "pplx-70b-chat",
+								},
+							},
+							{
+								Name: "It's a surprise",
+								CallbackData: model.CallbackData{
+									CommandKey: "start",
+									Case:       "createProfile",
+									Step:       2,
+									Payload:    "codellama-70b-instruct",
 								},
 							}},
 					},
