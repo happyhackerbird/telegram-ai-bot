@@ -46,9 +46,12 @@ func getHistoryWindow() error {
 
 	// use dequeue to remove the first element
 	for tokenCount-answerLength > contextLength {
+		log.Println("lenght of history:", len(globalHistory))
 		tokenCount -= tokenizer.MustCalToken(globalHistory[0])
 		globalHistory = globalHistory[1:]
 	}
+	log.Println("lenght of history after:", len(globalHistory))
+
 	return nil
 }
 

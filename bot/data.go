@@ -20,18 +20,18 @@ var (
 	robot = "\U0001F916"
 	r, _  = utf8.DecodeRuneInString(robot)
 
-	intro = fmt.Sprintf("Hello! I am your AI assistant. %v You can configure me with a custom prompt. Type /start to begin.", string(r))
-	// profileText = "Custom AI profile not set. Enter your custom AI assistant prompt by typing start."
+	intro       = fmt.Sprintf("Hello! I am your AI assistant. %v You can configure me with a custom prompt. Type /start to begin.", string(r))
+	defaultText = "Custom AI profile not set. Create profile by typing /start."
 
 	startButton   = "Start"
 	profileButton = "Profile"
 	menu          = "<b>Instructions for the human</b>\n\n" + intro
 	menuMarkup    = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(startButton, startButton),
+			tgbotapi.NewInlineKeyboardButtonData(startButton, "start;createProfile;0;"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(profileButton, profileButton),
+			tgbotapi.NewInlineKeyboardButtonData(profileButton, "profile;options;1;"),
 		),
 	)
 )
@@ -67,11 +67,6 @@ func (b *Bot) createProfile(userInput string, chatID int64) tgbotapi.Chattable {
 		database.SetInstruction(userInput) //unclean
 
 		msg, _ = services.PromptAIModelHandler(&upd)
-		// case "2":
-		// 	b.UpdateProfile(chatID, "AIModel", userInput)
-		//     finalizeProfileSetup(chatID, userState.ProfileData)
-		//     // Remove user state as the process is complete
-		// delete(userStates, chatID)
 	}
 	return msg
 }
@@ -90,8 +85,10 @@ func (b *Bot) UpdateProfile(chatId int64, key string, value string) {
 }
 
 func (b *Bot) ShowProfile(msg *tgbotapi.MessageConfig, chatId int64) {
-	profile := b.Profiles[chatId]
-	msg.Text = fmt.Sprintf("<b>Profile</b>\n\nName: %v\nInstruction: %v\nAI Model: %v", profile.Name, profile.Instruction, profile.AIModel)
+	if profile, exists := b.Profiles[chatId]; !exists {
+		msg.Text = defaultText
+	} else {
+		msg.Text = fmt.Sprintf("<b>Profile</b>\n\nName: %v\nInstruction: %v\nAI Model: %v", profile.Name, profile.Instruction, profile.AIModel)
+	}
 	msg.ParseMode = tgbotapi.ModeHTML
-	// msg.ReplyMarkup = menuMarkup
 }
