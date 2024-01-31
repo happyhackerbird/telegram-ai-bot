@@ -2,6 +2,7 @@ package main
 
 import (
 	"example/bot/telegram-ai-bot/bot"
+	"example/bot/telegram-ai-bot/flow"
 )
 
 func main() {
@@ -26,6 +27,7 @@ func main() {
 
 		bot.Run()
 	*/
-	bot := bot.Init()
+	flow := flow.Init()
+	bot := bot.Init(flow)
 	bot.Run()
 }

@@ -1,8 +1,11 @@
 package model
 
 import (
-	"encoding/json"
-	"log"
+	// "encoding/json"
+	// "fmt"
+	// "log"
+
+	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -16,6 +19,18 @@ CommandFlow (starting a specific script (flow) for manipulating an object, is a 
 					|
 					Step (certain, specific step, action)
 */
+
+type Bot interface {
+	UpdateProfile(chatID int64, field, value string)
+	ShowProfile(msg *tgbotapi.MessageConfig, chatID int64)
+	StartProfileSetup(chatID int64)
+}
+
+var b Bot
+
+func SetBot(bot Bot) {
+	b = bot
+}
 
 type (
 	Flow    map[CommandKey]Usecase
@@ -38,138 +53,89 @@ type (
 	}
 )
 
-var flow Flow
-var jsonData = `
-{
-   "start":{
-      "createProfile":{
-         "0":{
-            "handler": PromptProfileNameHandler(),
-            "message":"Enter the name of the bot",
-            "buttons": nil
-         },
-         "1":{
-            "handler": PromptInstructionHandler(),
-            "message":"Enter the instruction",
-            "buttons": nil
-         },
-         "2":{
-            "handler": PromptAIModelHandler(),
-            "message":"Select AI model",
-            "buttons": [
-               {
-                  "name":"Normal",
-                  "callback_data":{
-                     "cmd_key":"start",
-                     "case":"createProfile",
-                     "step":2,
-                     "payload":"mixtral-8x7b-instruct"
-                  }
-               },
-               {
-                  "name":"Creative",
-                  "callback_data":{
-                     "cmd_key":"start",
-                     "case":"createProfile",
-                     "step":2,
-                     "payload":"llama-2-70b-chat"
-                  }
-               }
-            ]
-         }
-      }
-   },
-   "profile":{
-      "options":{
-         "0":{
-            "handler": ProfileOptionsHandler(),
-            "message":"What do you want to do?",
-            "buttons":[
-               {
-                  "name":"Create new profile",
-                  "callback_data":{
-                     "cmd_key":"start",
-                     "case":"createProfile",
-                     "step":0,
-                     "payload":""
-                  }
-               },
-               {
-                  "name":"View existing profiles",
-                  "callback_data":{
-                     "cmd_key":"profile",
-                     "case":"options",
-                     "step":2,
-                     "payload":"view"
-                  }
-               }
-            ]
-         },
-         "2":{
-            "handler": ViewProfilesHandler(),
-            "message":"", // The message will be set in the handler
-            "buttons": nil
-         }
-      }
-   }
-}`
-
-func init() {
-	err := json.Unmarshal([]byte(jsonData), &flow)
-	if err != nil {
-		log.Fatalf("error loading flow data: %v", err)
-	}
-}
-
 // here is just a way to get a handler at the service level
 func (flow Flow) Handle(cd *CallbackData, updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
 	msg, err := flow[cd.CommandKey][cd.Case][cd.Step].Handler(updLocal)
+	fmt.Println("handling ", flow[cd.CommandKey][cd.Case][cd.Step])
 	if err != nil {
 		return nil, err
 	}
-	if cd.CommandKey == "start" {
-		// Store the user input after each step
-		switch cd.Step {
-		case 0:
-			b.updateProfile(updLocal, "Name", updLocal.Message.Text)
-		case 1:
-			b.updateProfile(updLocal, "Instruction", updLocal.Message.Text)
-		case 2:
-			b.updateProfile(updLocal, "AIModel", updLocal.Message.Text)
-		}
-		// } else if cd.CommandKey == "profile" {
-		// 	switch cd.Case {
-		// 	case "options":
-		// 		switch cd.Step {
-		// 		case 2:
-		// 			// Handle the viewing of existing profiles
-		// 			b.showProfile(msg, updLocal.TelegramChatID)
-		// 		}
-		// 	}
-	}
+	// if cd.CommandKey == "start" {
+	// 	chatID := int64(updLocal.TelegramChatID)
+
+	// // Store the user input after each step
+	// switch cd.Step {
+	// case 0:
+	//    ProfileNameResponseHandler(updLocal, updLocal.)
+	// case 1:
+	// 	b.UpdateProfile(chatID, "Instruction", updLocal.CallbackData.Payload)
+	// case 2:
+	// 	b.UpdateProfile(chatID, "AIModel", updLocal.CallbackData.Payload)
+	// }
+	// } else if cd.CommandKey == "profile" {
+	// 	switch cd.Case {
+	// 	case "options":
+	// 		switch cd.Step {
+	// 		case 2:
+	// 			// Handle the viewing of existing profiles
+	// 			b.showProfile(msg, updLocal.TelegramChatID)
+	// 		}
+	// 	}
+	// }
 
 	return msg, nil
 }
 
 func PromptProfileNameHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	return tgbotapi.NewMessage(updLocal.TelegramChatID, "Enter the name of the bot"), nil
+	chatID := int64(updLocal.TelegramChatID)
+	b.StartProfileSetup(chatID)
+	return tgbotapi.NewMessage(chatID, "Enter the name of the bot"), nil
 }
 
 func PromptInstructionHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	return tgbotapi.NewMessage(updLocal.TelegramChatID, "Enter the instruction"), nil
+	chatID := int64(updLocal.TelegramChatID)
+	// txt := fmt.Sprintf("Set the name: %v. \n\n Enter the instruction", userInput)
+	return tgbotapi.NewMessage(chatID, "Enter the instructions for the bot"), nil
 }
 
 func PromptAIModelHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	return tgbotapi.NewMessage(updLocal.TelegramChatID, "Select AI model"), nil
+	chatID := int64(updLocal.TelegramChatID)
+	// txt := fmt.Sprintf("Set the instruction: %v. \n\n Select AI model", userInput)
+
+	msg := tgbotapi.NewMessage(chatID, "Select the AI model")
+	msg.ParseMode = tgbotapi.ModeHTML
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Normal", "start;createProfile;2;mixtral-8x7b-instruct"),
+			tgbotapi.NewInlineKeyboardButtonData("Creative", "start;createProfile;2;llama-2-70b-chat"),
+		),
+	)
+	return msg, nil
+}
+
+func StoreAIModelHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
+	b.UpdateProfile(int64(updLocal.TelegramChatID), "AIModel", updLocal.CallbackData.Payload)
+	return tgbotapi.NewMessage(int64(updLocal.TelegramChatID), "Profile created"), nil
 }
 
 func ProfileOptionsHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	return tgbotapi.NewMessage(updLocal.TelegramChatID, "What do you want to do?"), nil
+	chatID := int64(updLocal.TelegramChatID)
+	msg := tgbotapi.NewMessage(chatID, "What do you want to do?")
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Create new profile", "createProfile")),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("View existing profiles", "viewProfiles"),
+		),
+	)
+	return msg, nil
 }
 
 func ViewProfilesHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
-	msg := tgbotapi.NewMessage(updLocal.TelegramChatID, "")
-	b.showProfile(&msg, updLocal.TelegramChatID)
+	chatID := int64(updLocal.TelegramChatID)
+
+	msg := tgbotapi.NewMessage(chatID, "")
+	b.ShowProfile(&msg, chatID)
 	return msg, nil
 }
 
@@ -207,17 +173,3 @@ func ViewProfilesHandler(updLocal *UpdateLocal) (tgbotapi.Chattable, error) {
 // 	}
 // 	logger.Info("callback_data dimensions are valid")
 // }
-
-// Helper function to update the profile
-func (b *Bot) updateProfile(updLocal *UpdateLocal, key string, value string) {
-	profile := b.Profiles[updLocal.TelegramChatID]
-	switch key {
-	case "Name":
-		profile.Name = value
-	case "Instruction":
-		profile.Instruction = value
-	case "AIModel":
-		profile.AIModel = value
-	}
-	b.Profiles[updLocal.TelegramChatID] = profile
-}

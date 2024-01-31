@@ -2,16 +2,17 @@ package memory
 
 import (
 	"errors"
-	"example/bot/telegram-ai-bot/model"
 	"log"
 	"strings"
+
+	"example/bot/telegram-ai-bot/model"
 
 	"github.com/pandodao/tokenizer-go"
 )
 
 var (
 	systemText     = "have a conversation with me about plushies and their lives & characters. be imaginative and creative. do not give precise or factual answers. do not invent new characters."
-	botInstruction = model.Message{
+	botInstruction = model.AIMessage{
 		Role:    "system",
 		Content: systemText,
 	}
@@ -20,7 +21,7 @@ var (
 	contextLength = 4096 // LLM model context length
 )
 
-func CurrentMessageWithHistory(userMessage string) ([]model.Message, error) {
+func CurrentMessageWithHistory(userMessage string) ([]model.AIMessage, error) {
 	AppendToHistory(userMessage)
 	err := getHistoryWindow()
 	if err != nil {
@@ -45,9 +46,9 @@ func getHistoryWindow() error {
 	return nil
 }
 
-func getMsgObjects() ([]model.Message, error) {
-	// msgObjects := make([]model.Message, len(globalHistory))
-	msgObjects := []model.Message{}
+func getMsgObjects() ([]model.AIMessage, error) {
+	// msgObjects := make([]model.AIMessage, len(globalHistory))
+	msgObjects := []model.AIMessage{}
 	msgObjects = append(msgObjects, botInstruction)
 
 	user := true
@@ -66,14 +67,14 @@ func AppendToHistory(str string) {
 	log.Printf("new History: %v \n", globalHistory)
 }
 
-func stringToMessage(user bool, str string) model.Message {
+func stringToMessage(user bool, str string) model.AIMessage {
 	if user {
-		return model.Message{
+		return model.AIMessage{
 			Role:    "user",
 			Content: str,
 		}
 	} else {
-		return model.Message{
+		return model.AIMessage{
 			Role:    "assistant",
 			Content: str,
 		}

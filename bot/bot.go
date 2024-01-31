@@ -3,11 +3,12 @@ package bot
 import (
 	"bufio"
 	"context"
-	"example/bot/telegram-ai-bot/model"
 	"fmt"
 	"log"
 	"os"
 	"unicode/utf8"
+
+	"example/bot/telegram-ai-bot/model"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
@@ -20,11 +21,12 @@ type Bot struct {
 	Flow model.Flow
 	// Service    *service.Service
 	// Repository *repository.Repository
-		Profiles map[int64]Profile
+	Profiles map[int64]Profile
+	userStates map[int64]int
 }
 
 type Profile struct {
-	Name       string
+	Name        string
 	Instruction string
 	AIModel     string
 }
@@ -34,7 +36,7 @@ var (
 	robot = "\U0001F916"
 	r, _  = utf8.DecodeRuneInString(robot)
 
-	intro       = fmt.Sprintf("Hello! I am your AI assistant. %v You can configure me with a custom prompt. Type /start to begin.", string(r))
+	intro = fmt.Sprintf("Hello! I am your AI assistant. %v You can configure me with a custom prompt. Type /start to begin.", string(r))
 	// profileText = "Custom AI profile not set. Enter your custom AI assistant prompt by typing start."
 
 	startButton   = "Start (create new profile)"
@@ -58,9 +60,11 @@ func init() {
 	}
 }
 
-func Init() Bot {
+func Init(flow model.Flow) Bot {
 	return Bot{
-		API: nil,
+		Flow: flow,
+		Profiles: make(map[int64]Profile),
+		userStates: make(map[int64]int),
 	}
 }
 
@@ -75,6 +79,8 @@ func (b *Bot) Run() {
 
 	// Set the bot to use debug mode (verbose logging).
 	bot.Debug = false
+
+	model.SetBot(b)
 
 	err = b.SetBotCommands()
 	if err != nil {
@@ -120,7 +126,7 @@ func (b *Bot) receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesChanne
 // configure the bot menu, don't use "start" command, but you can if you want
 func (b *Bot) InitBotCommands() tgbotapi.SetMyCommandsConfig {
 	commands := []model.CommandEntity{
-				{
+		{
 			Key:  model.StartCommand,
 			Name: "start",
 		},

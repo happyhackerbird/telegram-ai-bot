@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"encoding/json"
 	"example/bot/telegram-ai-bot/controllers"
 	"fmt"
 	"log"
@@ -14,36 +13,61 @@ import (
 
 func (b *Bot) UpdateRouter(update tgbotapi.Update) {
 	updLocal := model.DecodeToLocal(update)
-	if msg := update.Message; msg != nil {
-		// Handle messages
-		if update.Message != nil {
-			if strings.HasPrefix(msg.Text, "/") {
-				b.SendMessage(b.CommandHandler(update.Message.Command(), updLocal))
-			} else {
-				b.SendMessage(b.MessageHandler(updLocal))
-			}
+	switch {
+	case update.Message != nil:
+		if strings.HasPrefix(update.Message.Text, "/") {
+			b.SendMessage(b.CommandHandler(update.Message.Command(), updLocal))
+		} else {
+			b.SendMessage(b.MessageHandler(update.Message))
 		}
-		if update.CallbackQuery != nil {
-			b.SendMessage(b.CallbacksHandler(update.CallbackQuery))
-		}
+		break
+	case update.CallbackQuery != nil:
+		b.SendMessage(b.CallbacksHandler(updLocal))
 	}
-
-	// // We'll also say that this message is a reply to the previous message.
-	// // For any other specifications than Chat ID or Text, you'll need to
-	// // set fields on the `MessageConfig`.
-	// msg.ReplyToMessageID = update.Message.MessageID
-
 }
 
-func (b *Bot) MessageHandler(upd tgbotapi.Update) tgbotapi.Chattable {
-	updLocal := model.DecodeToLocal(upd)
+// // We'll also say that this message is a reply to the previous message.
+// // For any other specifications than Chat ID or Text, you'll need to
+// // set fields on the `MessageConfig`.
+// msg.ReplyToMessageID = update.Message.MessageID
 
-	replyText := controllers.GetAIResponse(msg.Text)
-	reply := tgbotapi.NewMessage(msg.Chat.ID, replyText)
+func (b *Bot) MessageHandler(msg *tgbotapi.Message) tgbotapi.Chattable {
+	chatID := msg.Chat.ID
+
+	// handle profile creation
+	if _, exists := b.userStates[chatID]; exists {
+		return b.createProfile(msg.Text, chatID)
+	}
+	// handle AI response
+	reply := tgbotapi.NewMessage(chatID, "")
+	reply.Text = controllers.GetAIResponse(msg.Text)
 	return reply
 }
 
+func (b *Bot) createProfile(userInput string, chatID int64) tgbotapi.Chattable {
+	var msg tgbotapi.Chattable
+	switch b.userStates[chatID] {
+	case 0:
+		b.UpdateProfile(chatID, "Name", userInput)
+		b.userStates[chatID] = 1
+		upd := model.UpdateLocal{TelegramChatID: model.TelegramChatID(chatID)}
+		msg, _ = model.PromptInstructionHandler(&upd)
+	case 1:
+		b.UpdateProfile(chatID, "Instruction", userInput)
+		b.userStates[chatID] = 2
+		upd := model.UpdateLocal{TelegramChatID: model.TelegramChatID(chatID)}
+		msg, _ = model.PromptAIModelHandler(&upd)
+		// case "2":
+		// 	b.UpdateProfile(chatID, "AIModel", userInput)
+		//     finalizeProfileSetup(chatID, userState.ProfileData)
+		//     // Remove user state as the process is complete
+		// delete(userStates, chatID)
+	}
+	return msg
+}
+
 func (b *Bot) CommandHandler(cmd string, updLocal *model.UpdateLocal) tgbotapi.Chattable {
+	chatId := int64(updLocal.TelegramChatID)
 	var cd model.CallbackData
 	switch cmd {
 	case "start":
@@ -53,46 +77,56 @@ func (b *Bot) CommandHandler(cmd string, updLocal *model.UpdateLocal) tgbotapi.C
 			Step:       0,
 		}
 	case "help":
-		return b.sendMenu(updLocal.TelegramChatID)
+		return b.sendMenu(chatId)
 	case "profile":
 		cd = model.CallbackData{CommandKey: "profile", Case: "options", Step: 0}
 	default:
-		return tgbotapi.NewMessage(updLocal.TelegramChatID, "I don't know that command. Type /help for a help.")
+		return tgbotapi.NewMessage(chatId, "I don't know that command. Type /help for a help.")
 	}
+
 	// Handle the command using the flow system.
-	replyMsg, err := model.Flow.Handle(&cd, updLocal)
+	replyMsg, err := b.Flow.Handle(&cd, updLocal)
 	if err != nil {
 		log.Printf("Error handling command: %s", err)
-		return tgbotapi.NewMessage(updLocal.TelegramChatID, "An error occurred.")
+		return tgbotapi.NewMessage(chatId, "An error occurred.")
 	}
 	return replyMsg
 }
 
 func (b *Bot) CallbacksHandler(updLocal *model.UpdateLocal) tgbotapi.Chattable {
 	// Decode the callback data from the query.
-	var cd model.CallbackData
-	if err := json.Unmarshal([]byte(query.Data), &cd); err != nil {
-		log.Printf("Error decoding callback data: %s", err)
-		return tgbotapi.NewMessage(query.Message.Chat.ID, "An error occurred.")
-	}
-
-	// Create an UpdateLocal object, assuming it contains necessary information like chat ID.
-	updLocal := &model.UpdateLocal{TelegramChatID: query.Message.Chat.ID}
-
-	// Handle the callback query using the flow system.
-	replyMsg, err := model.Flow.Handle(&cd, updLocal)
+	cData := updLocal.CallbackData
+	chatID := int64(updLocal.TelegramChatID)
+	replyMessage, err := b.Flow.Handle(&cData, updLocal)
 	if err != nil {
 		log.Printf("Error handling callback query: %s", err)
-		return tgbotapi.NewMessage(query.Message.Chat.ID, "An error occurred.")
+		return tgbotapi.NewMessage(chatID, "An error occurred.")
 	}
 
 	// Acknowledge the callback query to prevent the loading spinner on the user's button.
-	callbackCfg := tgbotapi.NewCallback(query.ID, "")
-	if _, err := b.API.Send(callbackCfg); err != nil {
-		log.Printf("An error occurred acknowledging callback query: %s", err.Error())
-	}
+	// callbackCfg := tgbotapi.NewCallback(, "")
+	// if _, err := b.API.Send(callbackCfg); err != nil {
+	// 	log.Printf("An error occurred acknowledging callback query: %s", err.Error())
+	// }
 
-	return replyMsg
+	return replyMessage
+}
+
+func (b *Bot) StartProfileSetup(chatID int64) {
+	b.userStates[chatID] = 0
+}
+
+func (b *Bot) UpdateProfile(chatId int64, key string, value string) {
+	profile := b.Profiles[chatId]
+	switch key {
+	case "Name":
+		profile.Name = value
+	case "Instruction":
+		profile.Instruction = value
+	case "AIModel":
+		profile.AIModel = value
+	}
+	b.Profiles[chatId] = profile
 }
 
 func (b *Bot) sendMenu(chatId int64) *tgbotapi.MessageConfig {
@@ -103,7 +137,7 @@ func (b *Bot) sendMenu(chatId int64) *tgbotapi.MessageConfig {
 	return &msg
 }
 
-func (b *Bot) showProfile(msg *tgbotapi.MessageConfig, chatId int64) {
+func (b *Bot) ShowProfile(msg *tgbotapi.MessageConfig, chatId int64) {
 	profile := b.Profiles[chatId]
 	msg.Text = fmt.Sprintf("<b>Profile</b>\n\nName: %v\nInstruction: %v\nAI Model: %v", profile.Name, profile.Instruction, profile.AIModel)
 	msg.ParseMode = tgbotapi.ModeHTML
