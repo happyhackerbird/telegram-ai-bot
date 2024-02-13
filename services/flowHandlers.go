@@ -14,6 +14,9 @@ type Bot interface {
 	ShowProfile(msg *tgbotapi.MessageConfig, chatID int64)
 	StartProfileSetup(chatID int64)
 	FinishProfileSetup(chatID int64)
+	GetCount() int64
+	DiscardCount()
+	Store(msg *model.VectorizedMessage)
 }
 
 func SetBot(bot Bot) {

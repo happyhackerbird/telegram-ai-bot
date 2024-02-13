@@ -5,6 +5,7 @@ import (
 	"example/bot/telegram-ai-bot/model"
 	"example/bot/telegram-ai-bot/services"
 	"fmt"
+	"log"
 	"unicode/utf8"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -91,4 +92,24 @@ func (b *Bot) ShowProfile(msg *tgbotapi.MessageConfig, chatId int64) {
 		msg.Text = fmt.Sprintf("<b>Profile</b>\n\nName: %v\nInstruction: %v\nAI Model: %v", profile.Name, profile.Instruction, profile.AIModel)
 	}
 	msg.ParseMode = tgbotapi.ModeHTML
+}
+
+func (b *Bot) GetCount() int64 {
+	c := b.message_count
+	b.message_count++
+	return c
+}
+
+func (b *Bot) DiscardCount() {
+	b.message_count--
+}
+
+func (b *Bot) Store(msg *model.VectorizedMessage) tgbotapi.Chattable {
+	err := b.Repository.Message.Store(msg)
+	if err != nil {
+		log.Printf("Error storing message: %s", err)
+		b.DiscardCount()
+		return tgbotapi.NewMessage(msg.ChatID, "An error occurred trying to store the message.")
+	}
+	return nil
 }
