@@ -104,12 +104,11 @@ func (b *Bot) DiscardCount() {
 	b.message_count--
 }
 
-func (b *Bot) Store(msg *model.VectorizedMessage) tgbotapi.Chattable {
+func (b *Bot) Store(msg *model.VectorizedMessage) {
+	fmt.Println("Storing message in vector database ... ")
 	err := b.Repository.Message.Store(msg)
 	if err != nil {
-		log.Printf("Error storing message: %s", err)
+		log.Printf("Failed to insert message record: %s", err)
 		b.DiscardCount()
-		return tgbotapi.NewMessage(msg.ChatID, "An error occurred trying to store the message.")
 	}
-	return nil
 }

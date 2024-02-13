@@ -73,7 +73,7 @@ func getMsgObjects() ([]model.AIMessage, error) {
 
 func AppendToHistory(str string) {
 	globalHistory = append(globalHistory, str)
-	log.Printf("new History: %v \n", globalHistory)
+	// log.Printf("new History: %v \n", globalHistory)
 }
 
 func stringToMessage(user bool, str string) model.AIMessage {
