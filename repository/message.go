@@ -13,7 +13,7 @@ import (
 	"github.com/milvus-io/milvus-sdk-go/v2/client"
 )
 
-var COLLECTIONNAME = "Messages"
+var COLLECTION_NAME = "Messages"
 
 type Message struct {
 	db client.Client
@@ -25,7 +25,9 @@ func (m *Message) Store(row *model.VectorizedMessage) error {
 	if err != nil {
 		log.Printf("Error marshaling struct: %v", err)
 	}
-	payload := strings.NewReader(`{"collectionName":"` + COLLECTIONNAME + `", "data":` + string(jsonBytes) + "}")
+
+	payload := strings.NewReader(`{"collectionName": "` + COLLECTION_NAME + `", "data":` + string(jsonBytes) + "}")
+	// fmt.Println(payload)
 	url := fmt.Sprintf("%s/v1/vector/insert", os.Getenv("DB_URL"))
 	api_key := "Bearer " + os.Getenv("DB_APITOKEN")
 
@@ -53,6 +55,6 @@ func (m *Message) Store(row *model.VectorizedMessage) error {
 	}
 	fmt.Println(string(body))
 
-	// log.Printf("Inserted %v\n", result)
+	fmt.Println("Inserted")
 	return nil
 }

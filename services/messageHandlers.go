@@ -41,6 +41,7 @@ func getVector(str string) ([]float32, error) {
 		log.Println("Error creating query embedding:", err)
 		return nil, err
 	}
+	fmt.Println("Dimension of embeddings vector:", len(queryResponse.Data[0].Embedding))
 	return queryResponse.Data[0].Embedding, nil
 
 }
