@@ -33,6 +33,7 @@ func Init() *Repository {
 		log.Fatal("fail to connect to milvus", err.Error())
 	}
 	fmt.Println("Successfully connected to DB!")
+
 	return &Repository{Message{cl}}
 
 }
