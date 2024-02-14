@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"example/bot/telegram-ai-bot/model"
+	"example/bot/telegram-ai-bot/repository"
 	"example/bot/telegram-ai-bot/services"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -14,12 +15,13 @@ import (
 )
 
 type Bot struct {
-	API *tgbotapi.BotAPI
+	message_count int64
+	API           *tgbotapi.BotAPI
 	// Config     *config.Config
 	// Logger     *zap.Logger
 	Flow model.Flow
 	// Service    *service.Service
-	// Repository *repository.Repository
+	Repository *repository.Repository
 	Profiles   map[int64]Profile
 	userStates map[int64]int
 }
@@ -32,11 +34,13 @@ func init() {
 	}
 }
 
-func Init(flow model.Flow) Bot {
+func Init(flow model.Flow, rep *repository.Repository) Bot {
 	return Bot{
-		Flow:       flow,
-		Profiles:   make(map[int64]Profile),
-		userStates: make(map[int64]int),
+		message_count: 0,
+		Flow:          flow,
+		Repository:    rep,
+		Profiles:      make(map[int64]Profile),
+		userStates:    make(map[int64]int),
 	}
 }
 

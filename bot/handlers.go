@@ -2,6 +2,7 @@ package bot
 
 import (
 	"example/bot/telegram-ai-bot/controllers"
+	"example/bot/telegram-ai-bot/services"
 	"log"
 	"strings"
 
@@ -39,6 +40,7 @@ func (b *Bot) MessageHandler(msg *tgbotapi.Message) tgbotapi.Chattable {
 	// handle AI response
 	reply := tgbotapi.NewMessage(chatID, "")
 	reply.Text = controllers.GetAIResponse(chatID, msg.Text)
+	services.StoreMessage(&reply)
 	return reply
 }
 
