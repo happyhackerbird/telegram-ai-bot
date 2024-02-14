@@ -40,9 +40,15 @@ func GetAIResponse(chatID int64, input string) string {
 	// get json response
 	var result model.Response
 	err = json.Unmarshal(response, &result)
-	if err != nil || len(result.Choices) == 0 {
+	if err != nil {
 		log.Println("client: error querying the AI: ", err)
 		return ("An error occured while querying the AI.")
+	} else if len(result.Choices) == 0 {
+		log.Println("client: error querying the AI: received empty response")
+		log.Println(result)
+
+		return ("An error occured while querying the AI.")
+
 	}
 	// append the response to the history if valid
 	database.AppendToHistory(result.Choices[0].Message.Content)
