@@ -15,7 +15,7 @@ func StoreMessage(reply *tgbotapi.MessageConfig) {
 	txt := reply.Text
 	if v, err := getVector(txt); err == nil {
 		msg := &model.VectorizedMessage{
-			MessageID:   b.GetCount(),
+			// MessageID:   b.GetCount(),
 			ChatID:      reply.ChatID,
 			MessageText: txt,
 			// WordCount: getWordCount(txt),
@@ -41,7 +41,7 @@ func getVector(str string) ([]float32, error) {
 		log.Println("Error creating query embedding:", err)
 		return nil, err
 	}
-	fmt.Println("Dimension of embeddings vector:", len(queryResponse.Data[0].Embedding))
+	// fmt.Println("Dimension of embeddings vector:", len(queryResponse.Data[0].Embedding))
 	return queryResponse.Data[0].Embedding, nil
 
 }

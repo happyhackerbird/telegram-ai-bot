@@ -36,7 +36,7 @@ func Migrate() {
 				Name:       "message_id",
 				DataType:   entity.FieldTypeInt64,
 				PrimaryKey: true,
-				AutoID:     false,
+				AutoID:     true,
 			},
 			{
 				Name:       "chat_id",

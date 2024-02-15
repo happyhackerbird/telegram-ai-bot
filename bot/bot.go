@@ -36,11 +36,10 @@ func init() {
 
 func Init(flow model.Flow, rep *repository.Repository) Bot {
 	return Bot{
-		message_count: 0,
-		Flow:          flow,
-		Repository:    rep,
-		Profiles:      make(map[int64]Profile),
-		userStates:    make(map[int64]int),
+		Flow:       flow,
+		Repository: rep,
+		Profiles:   make(map[int64]Profile),
+		userStates: make(map[int64]int),
 	}
 }
 

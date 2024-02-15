@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	// database.Migrate()
 	db := database.Connect()
 	repo := repository.Init(db)
 	flow := flow.Init()
