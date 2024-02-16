@@ -17,7 +17,9 @@ import (
 
 var api_key string
 var AIModel string
+var systemText string
 var temp = 1.1
+var historyPrompt = "Below are some of the most relevant interactions from this chat. \n %v \n Use the above information to respond to this message: %v"
 
 func init() {
 	err := godotenv.Load()
@@ -29,6 +31,10 @@ func init() {
 
 func SetModel(m string) {
 	AIModel = m
+}
+
+func SetInstruction(prompt string) {
+	systemText = prompt
 }
 
 func GetAIResponse(chatID int64, input string) string {
@@ -56,13 +62,20 @@ func GetAIResponse(chatID int64, input string) string {
 }
 
 func queryAPI(chatID int64, input string) ([]byte, error) {
-	// get a history window that fits the context length
-	messages, err := database.CurrentMessageWithHistory(input)
-	if err != nil {
-		fmt.Printf("client: could not get history window: %s\n", err)
-		return nil, err
+	// get context
+	context := database.GetContext(chatID, input)
+	var messages []model.AIMessage
+	botInstruction := model.AIMessage{
+		Role:    "system",
+		Content: systemText,
 	}
-	// fmt.Printf("messages: %v\n", messages)
+	questionWithContext := model.AIMessage{
+		Role:    "user",
+		Content: fmt.Sprintf(historyPrompt, context, input),
+	}
+	messages = append(messages, botInstruction)
+	messages = append(messages, questionWithContext)
+
 	// format as json
 	jsonMsg, err := json.Marshal(messages)
 	if err != nil {

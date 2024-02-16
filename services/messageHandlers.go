@@ -15,13 +15,12 @@ func StoreMessage(reply *tgbotapi.MessageConfig) {
 	txt := reply.Text
 	if v, err := getVector(txt); err == nil {
 		msg := &model.VectorizedMessage{
-			// MessageID:   b.GetCount(),
 			ChatID:      reply.ChatID,
 			MessageText: txt,
 			// WordCount: getWordCount(txt),
 			MessageVector: v,
 		}
-		b.Store(msg) // error at this level
+		b.Store(msg)
 	}
 }
 

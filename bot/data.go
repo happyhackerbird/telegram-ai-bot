@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"example/bot/telegram-ai-bot/database"
+	"example/bot/telegram-ai-bot/controllers"
 	"example/bot/telegram-ai-bot/model"
 	"example/bot/telegram-ai-bot/services"
 	"fmt"
@@ -65,7 +65,7 @@ func (b *Bot) createProfile(userInput string, chatID int64) tgbotapi.Chattable {
 		b.UpdateProfile(chatID, "Instruction", userInput)
 		b.userStates[chatID] = 2
 		upd := model.UpdateLocal{TelegramChatID: model.TelegramChatID(chatID)}
-		database.SetInstruction(userInput) //unclean
+		controllers.SetInstruction(userInput)
 
 		msg, _ = services.PromptAIModelHandler(&upd)
 	}
@@ -94,21 +94,10 @@ func (b *Bot) ShowProfile(msg *tgbotapi.MessageConfig, chatId int64) {
 	msg.ParseMode = tgbotapi.ModeHTML
 }
 
-// func (b *Bot) GetCount() int64 {
-// 	c := b.message_count
-// 	b.message_count++
-// 	return c
-// }
-
-// func (b *Bot) DiscardCount() {
-// 	b.message_count--
-// }
-
 func (b *Bot) Store(msg *model.VectorizedMessage) {
 	fmt.Println("Storing message in vector database ... ")
 	err := b.Repository.Message.Store(msg)
 	if err != nil {
 		log.Printf("Failed to insert message record: %s", err)
-		// b.DiscardCount()
 	}
 }

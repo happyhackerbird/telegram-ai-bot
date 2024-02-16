@@ -18,15 +18,6 @@ var (
 	contextLength  = 4096 // LLM model context length
 )
 
-func SetInstruction(prompt string) {
-	systemText = prompt
-	botInstruction = model.AIMessage{
-		Role:    "system",
-		Content: systemText,
-	}
-	globalHistory = []string{systemText}
-}
-
 func CurrentMessageWithHistory(userMessage string) ([]model.AIMessage, error) {
 	AppendToHistory(userMessage)
 	err := getHistoryWindow()
