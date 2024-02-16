@@ -22,3 +22,8 @@ type Response struct {
 		Delta         AIMessage
 	}
 }
+
+type SemanticSearchResponse struct {
+	Code int      `json:"code"`
+	Data []string `json:"data"`
+}

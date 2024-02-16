@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"example/bot/telegram-ai-bot/database"
 	"example/bot/telegram-ai-bot/model"
+	"example/bot/telegram-ai-bot/services"
 	"fmt"
 	"io"
 	"log"
@@ -63,7 +64,13 @@ func GetAIResponse(chatID int64, input string) string {
 
 func queryAPI(chatID int64, input string) ([]byte, error) {
 	// get context
-	context := database.GetContext(chatID, input)
+	context, err := services.GetContext(chatID, input)
+	if err != nil {
+		fmt.Printf("client: error getting context: %s\n", err)
+		return nil, err
+	}
+	fmt.Println("context:", context)
+
 	var messages []model.AIMessage
 	botInstruction := model.AIMessage{
 		Role:    "system",

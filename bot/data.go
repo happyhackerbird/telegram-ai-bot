@@ -53,6 +53,10 @@ func (b *Bot) FinishProfileSetup(chatID int64) {
 	delete(b.userStates, chatID)
 }
 
+func (b *Bot) SetModel(model string) {
+	controllers.SetModel(model)
+}
+
 func (b *Bot) createProfile(userInput string, chatID int64) tgbotapi.Chattable {
 	var msg tgbotapi.Chattable
 	switch b.userStates[chatID] {

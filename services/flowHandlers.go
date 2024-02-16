@@ -1,7 +1,6 @@
 package services
 
 import (
-	"example/bot/telegram-ai-bot/controllers"
 	"example/bot/telegram-ai-bot/model"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -14,6 +13,7 @@ type Bot interface {
 	ShowProfile(msg *tgbotapi.MessageConfig, chatID int64)
 	StartProfileSetup(chatID int64)
 	FinishProfileSetup(chatID int64)
+	SetModel(model string)
 	// GetId() int64
 	// DiscardCount()
 	Store(msg *model.VectorizedMessage)
@@ -55,7 +55,7 @@ func FinalizeProfileHandler(updLocal *model.UpdateLocal) (tgbotapi.Chattable, er
 	chatID := int64(updLocal.TelegramChatID)
 	b.UpdateProfile(chatID, "AIModel", updLocal.CallbackData.Payload)
 	b.FinishProfileSetup(chatID)
-	controllers.SetModel(updLocal.CallbackData.Payload) // where does this go
+	b.SetModel(updLocal.CallbackData.Payload) // where does this go
 
 	return tgbotapi.NewMessage(int64(updLocal.TelegramChatID), "Profile created!"), nil
 }

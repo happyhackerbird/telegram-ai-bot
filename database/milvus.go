@@ -30,7 +30,3 @@ func Connect() client.Client {
 	fmt.Println("Successfully connected to DB!")
 	return cl
 }
-
-func GetContext(chatID int64, input string) string {
-	return fmt.Sprintf("%v-%v", chatID, input)
-}
