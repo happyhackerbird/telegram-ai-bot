@@ -9,6 +9,7 @@ import (
 
 func main() {
 	db := database.Connect()
+	database.LoadIndex()
 	repo := repository.Init(db)
 	flow := flow.Init()
 	bot := bot.Init(flow, repo)

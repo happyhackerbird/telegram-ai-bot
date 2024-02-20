@@ -9,20 +9,20 @@ import (
 	"github.com/milvus-io/milvus-sdk-go/v2/entity"
 )
 
-var cl client.Client
+var c client.Client
 var COLLECTION_NAME = "Messages"
 
 func Migrate() {
-	cl = Connect()
+	c = Connect()
 
 	// delete collection if exists
 	ctx := context.Background()
-	has, err := cl.HasCollection(ctx, COLLECTION_NAME)
+	has, err := c.HasCollection(ctx, COLLECTION_NAME)
 	if err != nil {
 		log.Fatal("fail to check whether collection exists", err.Error())
 	}
 	if has {
-		cl.DropCollection(ctx, COLLECTION_NAME)
+		c.DropCollection(ctx, COLLECTION_NAME)
 		fmt.Println("Collection dropped")
 	}
 
@@ -73,10 +73,29 @@ func Migrate() {
 	// 	WithField(entity.NewField().WithName("message_text").WithDataType(entity.FieldTypeVarChar).WithDescription("message text").WithType).
 	// 	WithField(entity.NewField().WithName("message_vector").WithDataType(entity.FieldTypeFloatVector).WithDim(128))
 
-	err = cl.CreateCollection(ctx, schema, entity.DefaultShardNumber)
+	err = c.CreateCollection(ctx, schema, entity.DefaultShardNumber)
 	if err != nil {
 		log.Fatal("failed to create collection", err.Error())
 	}
 	fmt.Println("Successfully created collection!")
 
+	CreateIndex()
+
+}
+
+func CreateIndex() {
+	index, err := entity.NewIndexAUTOINDEX(entity.MetricType("L2"))
+
+	if err != nil {
+		log.Fatal("Failed to prepare the index:", err.Error())
+	}
+
+	fmt.Println(index.Name())
+
+	err = c.CreateIndex(context.Background(), COLLECTION_NAME, "message_vector", index, false)
+
+	if err != nil {
+		log.Fatal("Failed to create the index:", err.Error())
+	}
+	fmt.Println("Index created")
 }

@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"example/bot/telegram-ai-bot/model"
 	"fmt"
 	"io"
@@ -16,7 +15,7 @@ import (
 )
 
 var n = 10
-var COLLECTION_NAME = "messages"
+var COLLECTION_NAME = "Messages"
 
 func StoreMessage(reply *tgbotapi.MessageConfig) {
 	txt := reply.Text
@@ -32,7 +31,7 @@ func StoreMessage(reply *tgbotapi.MessageConfig) {
 }
 
 func getVector(str string) ([]float32, error) {
-	fmt.Println("Getting vector embedding for message ... ")
+	// fmt.Println("Getting vector embedding for message ... ")
 	client := openai.NewClient(os.Getenv("OPENAI_API"))
 
 	// Create an EmbeddingRequest for the user query
@@ -54,17 +53,17 @@ func getVector(str string) ([]float32, error) {
 
 // so should this be here, or split up with repository or database ?? (repository -> through b.repository )
 func GetContext(chatID int64, input string) (string, error) {
+	fmt.Println("Getting context for message ... ")
 	// get vector embedding for user input
 	inputVector, err := getVector(input)
 	if err != nil {
-		fmt.Println("client: error getting vector embedding for message")
 		return "", err
 	}
 
 	url := fmt.Sprintf("%s/v1/vector/search", os.Getenv("DB_URL"))
 	api_key := "Bearer " + os.Getenv("DB_APITOKEN")
-	payload := strings.NewReader(`{"collectionName": "` + COLLECTION_NAME + `", "outputFields": ["message_text"], "vector":` + toString(inputVector) + fmt.Sprintf(`, "filter": "chat_id in [%v]", limit: %v}`, chatID, n))
-
+	payload := strings.NewReader(`{"collectionName": "` + COLLECTION_NAME + `", "outputFields": ["message_text"], "vector":` + toString(inputVector) + fmt.Sprintf(`, "filter": "chat_id in [%v]", "limit": %v}`, chatID, n))
+	// fmt.Println("Payload: ", payload)
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
 		return "", err
@@ -85,16 +84,14 @@ func GetContext(chatID int64, input string) (string, error) {
 		return "", err
 	}
 
-	var result model.SemanticSearchResponse
-	err = json.Unmarshal(body, &result)
+	response, err := model.DecodeMessage(body)
 	if err != nil {
-		fmt.Println("client: error unmarshalling response body")
 		return "", err
 	}
 
-	return strings.Join(result.Data, ". "), nil
+	return strings.Join(model.GetResponseMessages(response.([]model.Content)), "\n"), nil
 }
 
 func toString(v []float32) string {
-	return strings.Trim(fmt.Sprint(v), "[]")
+	return strings.Join(strings.Split(fmt.Sprint(v), " "), ", ")
 }

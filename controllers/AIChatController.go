@@ -20,7 +20,7 @@ var api_key string
 var AIModel string
 var systemText string
 var temp = 1.1
-var historyPrompt = "Below are some of the most relevant interactions from this chat. \n %v \n Use the above information to respond to this message: %v"
+var historyPrompt = "Below are some of the most relevant interactions from this chat. \n %v \n Use the information to respond to this message: %v"
 
 func init() {
 	err := godotenv.Load()
@@ -66,10 +66,9 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 	// get context
 	context, err := services.GetContext(chatID, input)
 	if err != nil {
-		fmt.Printf("client: error getting context: %s\n", err)
-		return nil, err
+		log.Printf("client: error getting context: %s\n", err)
 	}
-	fmt.Println("context:", context)
+	fmt.Println("\nContext:", context)
 
 	var messages []model.AIMessage
 	botInstruction := model.AIMessage{
@@ -86,7 +85,7 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 	// format as json
 	jsonMsg, err := json.Marshal(messages)
 	if err != nil {
-		fmt.Printf("client: could not marshal json: %s\n", err)
+		log.Printf("client: could not marshal json: %s\n", err)
 		return nil, err
 	}
 
@@ -97,7 +96,7 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
-		fmt.Printf("client: could not create request: %s\n", err)
+		log.Printf("client: could not create request: %s\n", err)
 		return nil, err
 	}
 
@@ -107,14 +106,14 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Printf("client: error making http request: %s\n", err)
+		log.Printf("client: error making http request: %s\n", err)
 		return nil, err
 	}
 
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		fmt.Printf("client: error reading response body: %s\n", err)
+		log.Printf("client: error reading response body: %s\n", err)
 		return nil, err
 	}
 
