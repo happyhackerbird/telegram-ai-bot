@@ -14,7 +14,7 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
-var n = 10
+var n = 7
 var COLLECTION_NAME = "Messages"
 
 func StoreMessage(reply *tgbotapi.MessageConfig) {
@@ -84,12 +84,15 @@ func GetContext(chatID int64, input string) (string, error) {
 		return "", err
 	}
 
-	response, err := model.DecodeMessage(body)
+	response, err := model.DecodeResponse(body)
 	if err != nil {
 		return "", err
 	}
+	relevant := model.GetMostRelevantMessages(response.([]model.Content), n)
 
-	return strings.Join(model.GetResponseMessages(response.([]model.Content)), "\n"), nil
+	return strings.Join(model.GetResponseMessages(relevant), "\n"), nil
+
+	// return strings.Join(model.GetResponseMessages(response.([]model.Content)), "\n"), nil
 }
 
 func toString(v []float32) string {

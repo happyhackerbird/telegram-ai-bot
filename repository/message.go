@@ -53,8 +53,18 @@ func (m *Message) Store(row *model.VectorizedMessage) error {
 		log.Printf("client: error reading response body: %s\n", err)
 		return err
 	}
-	fmt.Println(string(body))
+	var r model.DBResponse
+	err = json.Unmarshal(body, &r)
+	if err != nil {
+		log.Printf("client: error unmarshaling response body: %s\n", err)
+		return err
+	}
+	if r.Code != 200 {
+		log.Printf("client: error inserting message\n")
+		return fmt.Errorf("error inserting message: %s", r.Data)
+	}
+	// log.Printf("Inserted %d message with ID %v", r.Data.InsertCount, r.Data.InsertId)
+	log.Println(string(body))
 
-	fmt.Println("Inserted")
 	return nil
 }

@@ -1,8 +1,10 @@
 package model
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
+	"slices"
 )
 
 type AIMessage struct {
@@ -28,6 +30,14 @@ type Response struct {
 	}
 }
 
+type DBResponse struct {
+	Code int `json:"code"`
+	Data struct {
+		InsertCount int      `json:"insertCount"`
+		InsertId    []string `json:"insertId"`
+	}
+}
+
 type SemanticSearchResponse struct {
 	Code int             `json:"code"`
 	Data json.RawMessage `json:"data"`
@@ -42,7 +52,7 @@ type Content struct {
 	Text     string  `json:"message_text"`
 }
 
-func DecodeMessage(b []byte) (interface{}, error) {
+func DecodeResponse(b []byte) (interface{}, error) {
 	var r SemanticSearchResponse
 	err := json.Unmarshal(b, &r)
 	if err != nil {
@@ -69,9 +79,17 @@ func DecodeMessage(b []byte) (interface{}, error) {
 	}
 }
 
+func GetMostRelevantMessages(c []Content, n int) []Content {
+	slices.SortFunc(c, func(i Content, j Content) int {
+		return -cmp.Compare(i.Distance, j.Distance)
+	})
+	return c[:n]
+}
+
 func GetResponseMessages(c []Content) []string {
 	var messages []string
 	for _, v := range c {
+		fmt.Println(v.Distance)
 		messages = append(messages, v.Text)
 	}
 	return messages
