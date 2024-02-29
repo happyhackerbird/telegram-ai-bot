@@ -11,12 +11,22 @@ import (
 )
 
 var (
-	systemText     string
-	botInstruction model.AIMessage
-	globalHistory  []string
-	answerLength   = 218  // number of tokens in medium length answer
-	contextLength  = 4096 // LLM model context length
+	systemText       string
+	botInstruction   model.AIMessage
+	systemTokenCount int
+	globalHistory    []string
+	answerLength     = 218  // number of tokens in medium length answer
+	contextLength    = 4096 // LLM model context length
 )
+
+func SetInstruction(prompt string) {
+	systemText = prompt
+	botInstruction = model.AIMessage{
+		Role:    "system",
+		Content: systemText,
+	}
+	systemTokenCount = tokenizer.MustCalToken(systemText)
+}
 
 func CurrentMessageWithHistory(userMessage string) ([]model.AIMessage, error) {
 	AppendToHistory(userMessage)
@@ -33,7 +43,7 @@ func getHistoryWindow() error {
 	if userMsgTokenCount-answerLength > contextLength {
 		return errors.New("user message too long")
 	}
-	tokenCount := tokenizer.MustCalToken(strings.Join(globalHistory, "."))
+	tokenCount := tokenizer.MustCalToken(strings.Join(globalHistory, ".")) + systemTokenCount
 
 	// use dequeue to remove the first element
 	for tokenCount-answerLength > contextLength {
@@ -52,7 +62,7 @@ func getMsgObjects() ([]model.AIMessage, error) {
 	msgObjects = append(msgObjects, botInstruction)
 
 	user := true
-	for _, msg := range globalHistory[1:] {
+	for _, msg := range globalHistory {
 		msgObjects = append(msgObjects, stringToMessage(user, msg))
 		user = !user
 	}
