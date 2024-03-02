@@ -68,7 +68,7 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 	if err != nil {
 		log.Printf("client: error getting context: %s\n", err)
 	}
-	fmt.Println("\nContext:", context)
+	fmt.Println("\nContext:\n", context)
 
 	var messages []model.AIMessage
 	botInstruction := model.AIMessage{
@@ -89,10 +89,18 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 		return nil, err
 	}
 
-	s := strconv.FormatFloat(temp, 'f', -1, 64)
+	s := string('"') + strconv.FormatFloat(temp, 'f', -1, 64) + string('"')
 	// build the request and send it
-	url := "https://api.perplexity.ai/chat/completions"
-	payload := strings.NewReader("{\"model\":\"" + AIModel + "\",\"messages\":" + string(jsonMsg) + ",\"temperature\":\"" + s + "\"}")
+	var url string
+	if AIModel == "gpt-4-turbo-preview" {
+		url = "https://api.openai.com/v1/chat/completions"
+		api_key = "Bearer " + os.Getenv("OPENAI_API_KEY")
+		s = strconv.FormatFloat(0.6, 'f', -1, 64) // openai takes between 0 and 1 as temp
+
+	} else {
+		url = "https://api.perplexity.ai/chat/completions"
+	}
+	payload := strings.NewReader("{\"model\":\"" + AIModel + "\",\"messages\":" + string(jsonMsg) + ",\"temperature\": " + s + "}")
 
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
@@ -116,7 +124,6 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 		log.Printf("client: error reading response body: %s\n", err)
 		return nil, err
 	}
-
 	return body, nil
 
 }

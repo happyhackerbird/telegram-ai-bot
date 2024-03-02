@@ -34,7 +34,7 @@ type DBResponse struct {
 	Code int `json:"code"`
 	Data struct {
 		InsertCount int      `json:"insertCount"`
-		InsertId    []string `json:"insertId"`
+		InsertId    []string `json:"insertIds"`
 	}
 }
 

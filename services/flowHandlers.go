@@ -43,9 +43,9 @@ func PromptAIModelHandler(updLocal *model.UpdateLocal) (tgbotapi.Chattable, erro
 	msg.ParseMode = tgbotapi.ModeHTML
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("1", "start;createProfile;2;mixtral-8x7b-instruct"),
-			tgbotapi.NewInlineKeyboardButtonData("2", "start;createProfile;2;pplx-70b-chat"),
-			tgbotapi.NewInlineKeyboardButtonData("It's a surprise", "start;createProfile;2;codellama-70b-instruct"),
+			tgbotapi.NewInlineKeyboardButtonData("Mixtral 8x7b", "start;createProfile;2;mixtral-8x7b-instruct"),
+			tgbotapi.NewInlineKeyboardButtonData("Perplexity 70b", "start;createProfile;2;pplx-70b-chat"),
+			tgbotapi.NewInlineKeyboardButtonData("GPT-4-Turbo", "start;createProfile;2;gpt-4-turbo-preview"),
 		),
 	)
 	return msg, nil

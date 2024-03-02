@@ -32,7 +32,7 @@ func StoreMessage(reply *tgbotapi.MessageConfig) {
 
 func getVector(str string) ([]float32, error) {
 	// fmt.Println("Getting vector embedding for message ... ")
-	client := openai.NewClient(os.Getenv("OPENAI_API"))
+	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
 	// Create an EmbeddingRequest for the user query
 	queryReq := openai.EmbeddingRequest{

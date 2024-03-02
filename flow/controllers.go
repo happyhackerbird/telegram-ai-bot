@@ -28,7 +28,7 @@ func Init() model.Flow {
 					Message: model.Message{
 						Text: "Select the AI model",
 						Buttons: []model.Button{{
-							Name: "1",
+							Name: "Mixtral 8x7b",
 							CallbackData: model.CallbackData{
 								CommandKey: "start",
 								Case:       "createProfile",
@@ -37,7 +37,7 @@ func Init() model.Flow {
 							},
 						},
 							{
-								Name: "2",
+								Name: "Perplexity 70b",
 								CallbackData: model.CallbackData{
 									CommandKey: "start",
 									Case:       "createProfile",
@@ -46,12 +46,12 @@ func Init() model.Flow {
 								},
 							},
 							{
-								Name: "It's a surprise",
+								Name: "GPT-4-Turbo",
 								CallbackData: model.CallbackData{
 									CommandKey: "start",
 									Case:       "createProfile",
 									Step:       2,
-									Payload:    "codellama-70b-instruct",
+									Payload:    "gpt-4-turbo-preview",
 								},
 							}},
 					},

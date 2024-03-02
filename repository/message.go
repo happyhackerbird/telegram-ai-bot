@@ -63,8 +63,8 @@ func (m *Message) Store(row *model.VectorizedMessage) error {
 		log.Printf("client: error inserting message\n")
 		return fmt.Errorf("error inserting message: %s", r.Data)
 	}
-	// log.Printf("Inserted %d message with ID %v", r.Data.InsertCount, r.Data.InsertId)
-	log.Println(string(body))
+	log.Printf("Inserted %d message with ID %v", r.Data.InsertCount, r.Data.InsertId[0])
+	// log.Println(string(body))
 
 	return nil
 }
