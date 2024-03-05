@@ -1,6 +1,6 @@
 # Telegram AI Chatbot  
 
-Chatbot using Perplexity AI and with conversational memory. Link: https://t.me/XBuildA_Bot (server needs to run)
+A Telegram bot that allows users to chat to a personalized AI assistant. The user can set a custom system prompt for the AI model and select the model. Messages are stored in a vector database and retrieved to provide a relevant context for new user input. 
 
 Memory is currently achieved using the Retrieval Augmented Generation (RAG). This methods works by using vector embeddings of the message text in order to retrieve the most relevant messages (n=7) via a similarity search on the vector DB. Database used is Milvus (Cloud). The retrieved message provide the context for the user input, everything is sent along in the API call. 
 This memory is persistent between different chat sessions and specific to the user's conversation (chat). 
