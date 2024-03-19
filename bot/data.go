@@ -21,13 +21,14 @@ var (
 	robot = "\U0001F916"
 	r, _  = utf8.DecodeRuneInString(robot)
 
-	intro       = fmt.Sprintf("Hello! I am your AI assistant. %v You can configure me with a custom prompt. Type /start to begin.", string(r))
+	intro       = fmt.Sprintf("Welcome to Build-A-Bot. %v You can create multiple custom AI chat profiles. Type /start to begin.", string(r))
 	defaultText = "Custom AI profile not set. Create profile by typing /start."
 
 	startButton   = "Start"
 	profileButton = "Profile"
-	menu          = "<b>Instructions for the human</b>\n\n" + intro
-	menuMarkup    = tgbotapi.NewInlineKeyboardMarkup(
+
+	menu       = "<b>Instructions</b>\n\n" + intro
+	menuMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(startButton, "start;createProfile;0;"),
 		),
@@ -51,6 +52,22 @@ func (b *Bot) StartProfileSetup(chatID int64) {
 
 func (b *Bot) FinishProfileSetup(chatID int64) {
 	delete(b.userStates, chatID)
+	//save profile in database
+	p := b.Profiles[chatID]
+	profiles := model.VectorizedProfile{
+		ChatID: chatID,
+		Vector: [1536]float32{0},
+		Profiles: model.JSONProfiles{Profiles: []model.Profile{
+			{Name: p.Name, Instruction: p.Instruction, AIModel: p.AIModel}},
+		}}
+
+	fmt.Println("Storing profile in database ... ")
+
+	err := b.Repository.Profile.Store(&profiles)
+	if err != nil {
+		log.Printf("Failed to insert message record: %s", err)
+	}
+
 }
 
 func (b *Bot) SetModel(model string) {
@@ -93,7 +110,7 @@ func (b *Bot) ShowProfile(msg *tgbotapi.MessageConfig, chatId int64) {
 	if profile, exists := b.Profiles[chatId]; !exists {
 		msg.Text = defaultText
 	} else {
-		msg.Text = fmt.Sprintf("<b>Profile</b>\n\nName: %v\nInstruction: %v\nAI Model: %v", profile.Name, profile.Instruction, profile.AIModel)
+		msg.Text = fmt.Sprintf("<b>Profiles</b>\n\n<b>%v</b>\nInstructions: \"%v\"\nAI Model: %v", profile.Name, profile.Instruction, profile.AIModel)
 	}
 	msg.ParseMode = tgbotapi.ModeHTML
 }

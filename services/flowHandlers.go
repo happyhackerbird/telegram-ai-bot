@@ -57,7 +57,7 @@ func FinalizeProfileHandler(updLocal *model.UpdateLocal) (tgbotapi.Chattable, er
 	b.FinishProfileSetup(chatID)
 	b.SetModel(updLocal.CallbackData.Payload) // where does this go
 
-	return tgbotapi.NewMessage(int64(updLocal.TelegramChatID), "Profile created!"), nil
+	return tgbotapi.NewMessage(int64(updLocal.TelegramChatID), "Profile created and saved!"), nil
 }
 
 func ProfileOptionsHandler(updLocal *model.UpdateLocal) (tgbotapi.Chattable, error) {

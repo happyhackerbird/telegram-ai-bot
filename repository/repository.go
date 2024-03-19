@@ -9,6 +9,7 @@ import (
 
 type Repository struct {
 	Message Message
+	Profile Profile
 }
 
 func init() {
@@ -20,6 +21,7 @@ func init() {
 }
 
 func Init(cl client.Client) *Repository {
-	return &Repository{Message{cl}}
+	return &Repository{Message{cl},
+		Profile{cl}}
 
 }

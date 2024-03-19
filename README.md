@@ -1,17 +1,19 @@
 # Telegram AI Chatbot  
 
-A Telegram bot that allows users to chat to a personalized AI assistant. The user can set a custom system prompt for the AI model and select the model. Messages are stored in a vector database and retrieved to provide a relevant context for new user input. 
+Telegram bot that allows users to create and chat with multiple personalized AI assistants using OpenAI and Perplexity API. The user can create an assistant profile by setting a custom system prompt for the model and choose between different LLM models. 
 
-Memory is currently achieved using the Retrieval Augmented Generation (RAG). This methods works by using vector embeddings of the message text in order to retrieve the most relevant messages (n=7) via a similarity search on the vector DB. Database used is Milvus (Cloud). The retrieved message provide the context for the user input, everything is sent along in the API call. 
-This memory is persistent between different chat sessions and specific to the user's conversation (chat). 
-Previously the bot had a short term memory achieved using the sliding window method. 
+Each profile responds based on a relevant history that is implemented with Milvus vector database (through a process called Retrieval Augmented Generation). 
+
+This methods works by using vector embeddings of the message text in order to retrieve the most relevant messages (n=7) via a similarity search on the vector DB. The prompt to the LLM is augmented with this semantic context, hence the name. The memory is persistent between different chat sessions and specific to the user's conversation (chat). 
+Previously the bot had a short term memory achieved using a sliding window history. 
+
 Questions: 
 - Do the individual messages need to be chunked evenly before storage?
 - Refining the context retrieval
 
 ## To-do
-- [ ] add ability to create multiple threads so that the user can have multiple ongoing chats (make the bot profile persistent for each thread)
-- [ ] check if error handling was done correctly everywhere
+- [ ] add prompt generation from messages to help users tailor the assistant to their needs
+- [ ] (in progress) store the prompts in the db & retrieve them + ability to edit them 
       
 ## To run your own bot 
 1. Create a new bot and get the API token from the Telegram Botfather account
