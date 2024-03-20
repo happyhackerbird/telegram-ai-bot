@@ -55,11 +55,10 @@ func (b *Bot) FinishProfileSetup(chatID int64) {
 	//save profile in database
 	p := b.Profiles[chatID]
 	profiles := model.VectorizedProfile{
-		ChatID: chatID,
-		Vector: [1536]float32{0},
-		Profiles: model.JSONProfiles{Profiles: []model.Profile{
-			{Name: p.Name, Instruction: p.Instruction, AIModel: p.AIModel}},
-		}}
+		ChatID:   chatID,
+		Vector:   []float32{0},
+		Profiles: []model.Profile{{Name: "test", Instruction: "test", AIModel: "test"}, {Name: p.Name, Instruction: p.Instruction, AIModel: p.AIModel}},
+	}
 
 	fmt.Println("Storing profile in database ... ")
 
