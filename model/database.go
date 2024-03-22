@@ -8,9 +8,9 @@ type VectorizedMessage struct {
 }
 
 type VectorizedProfile struct {
-	ChatID   int64        `json:"chat_id" milvus:"name:chat_id"`
-	Vector   []float32    `json:"vector" milvus:"name:vector"`
-	Profiles JSONProfiles `json:"profiles" milvus:"name:profiles"`
+	ChatID   int64     `json:"chat_id" milvus:"name:chat_id"`
+	Vector   []float32 `json:"vector" milvus:"name:vector"`
+	Profiles []Profile `json:"profiles" milvus:"name:profiles"`
 }
 
 type Profile struct {
@@ -19,4 +19,6 @@ type Profile struct {
 	AIModel     string `json:"ai_model" milvus:"name:ai_model"`
 }
 
-type JSONProfiles []Profile
+type ProfileResult struct {
+	Profiles []Profile `json:"profiles"`
+}

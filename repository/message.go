@@ -21,6 +21,8 @@ type Message struct {
 }
 
 func (m *Message) Store(row *model.VectorizedMessage) error {
+	fmt.Println("Storing message in database ... ")
+
 	jsonBytes, err := json.Marshal(row)
 	if err != nil {
 		log.Printf("Error marshaling struct: %v", err)
