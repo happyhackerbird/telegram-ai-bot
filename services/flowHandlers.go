@@ -12,7 +12,7 @@ type Bot interface {
 	UpdateProfile(chatID int64, field, value string)
 	ShowProfile(msg *tgbotapi.MessageConfig, chatID int64)
 	StartProfileSetup(chatID int64)
-	FinishProfileSetup(chatID int64)
+	FinishProfileSetup(chatID int64) error
 	SetModel(model string)
 	// GetId() int64
 	// DiscardCount()
@@ -54,7 +54,10 @@ func PromptAIModelHandler(updLocal *model.UpdateLocal) (tgbotapi.Chattable, erro
 func FinalizeProfileHandler(updLocal *model.UpdateLocal) (tgbotapi.Chattable, error) {
 	chatID := int64(updLocal.TelegramChatID)
 	b.UpdateProfile(chatID, "AIModel", updLocal.CallbackData.Payload)
-	b.FinishProfileSetup(chatID)
+	err := b.FinishProfileSetup(chatID)
+	if err != nil {
+		return tgbotapi.NewMessage(int64(updLocal.TelegramChatID), "An error occurred trying to create the profile. Please try again."), err
+	}
 	b.SetModel(updLocal.CallbackData.Payload) // where does this go
 
 	return tgbotapi.NewMessage(int64(updLocal.TelegramChatID), "Profile created and saved!"), nil

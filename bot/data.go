@@ -11,12 +11,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-type Profile struct {
-	Name        string
-	Instruction string
-	AIModel     string
-}
-
 var (
 	robot = "\U0001F916"
 	r, _  = utf8.DecodeRuneInString(robot)
@@ -50,23 +44,26 @@ func (b *Bot) StartProfileSetup(chatID int64) {
 	b.userStates[chatID] = 0
 }
 
-func (b *Bot) FinishProfileSetup(chatID int64) {
+func (b *Bot) FinishProfileSetup(chatID int64) error {
 	delete(b.userStates, chatID)
+
 	//save profile in database
 	p := b.Profiles[chatID]
 	profiles := model.VectorizedProfile{
 		ChatID:   chatID,
 		Vector:   []float32{0},
-		Profiles: []model.Profile{{Name: p.Name, Instruction: p.Instruction, AIModel: p.AIModel}},
+		Profiles: []model.Profile{{Name: "Teddy Profile", Instruction: "Act as a small, playful and curious teddy bear. you have very soft feet and cuddly ears and squishy plush.", AIModel: "mixtral-8x7b-instruct"}, {Name: p.Name, Instruction: p.Instruction, AIModel: p.AIModel}},
 	}
-
-	fmt.Println("Storing profile in database ... ")
+	delete(b.Profiles, chatID)
 
 	err := b.Repository.Profile.Store(&profiles)
 	if err != nil {
 		log.Printf("Failed to insert message record: %s", err)
+		return err
 	}
 
+	// user create profile, error on last step, retain profile ?
+	return nil
 }
 
 func (b *Bot) SetModel(model string) {
@@ -106,10 +103,20 @@ func (b *Bot) UpdateProfile(chatId int64, key string, value string) {
 }
 
 func (b *Bot) ShowProfile(msg *tgbotapi.MessageConfig, chatId int64) {
-	if profile, exists := b.Profiles[chatId]; !exists {
+
+	profiles, err := b.Repository.Profile.GetProfiles(chatId)
+	if err != nil || profiles == nil {
+		log.Printf("Failed to get profile record: %s", err)
+		msg.Text = "An error occurred."
+	}
+	profile, exists := b.Profiles[chatId]
+	if !exists && len(profiles) == 0 {
 		msg.Text = defaultText
 	} else {
-		msg.Text = fmt.Sprintf("<b>Profiles</b>\n\n<b>%v</b>\nInstructions: \"%v\"\nAI Model: %v", profile.Name, profile.Instruction, profile.AIModel)
+		if exists {
+			profiles = append(profiles, profile)
+		}
+		msg.Text = services.PrintProfiles(profiles)
 	}
 	msg.ParseMode = tgbotapi.ModeHTML
 }

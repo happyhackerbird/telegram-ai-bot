@@ -22,7 +22,7 @@ type Bot struct {
 	Flow model.Flow
 	// Service    *service.Service
 	Repository *repository.Repository
-	Profiles   map[int64]Profile
+	Profiles   map[int64]model.Profile
 	userStates map[int64]int
 }
 
@@ -38,7 +38,7 @@ func Init(flow model.Flow, rep *repository.Repository) Bot {
 	return Bot{
 		Flow:       flow,
 		Repository: rep,
-		Profiles:   make(map[int64]Profile),
+		Profiles:   make(map[int64]model.Profile),
 		userStates: make(map[int64]int),
 	}
 }

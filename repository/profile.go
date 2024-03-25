@@ -146,8 +146,6 @@ func (p *Profile) GetProfiles(chatID int64) ([]model.Profile, error) {
 		return nil, err
 	}
 
-	fmt.Println()
-
 	return resultToJSONProfiles(resq), nil
 
 }

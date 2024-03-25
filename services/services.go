@@ -98,3 +98,11 @@ func GetContext(chatID int64, input string) (string, error) {
 func toString(v []float32) string {
 	return strings.Join(strings.Split(fmt.Sprint(v), " "), ", ")
 }
+
+func PrintProfiles(profiles []model.Profile) string {
+	var str string = fmt.Sprintf("<b>Profiles</b>\n\n")
+	for _, profile := range profiles {
+		str += fmt.Sprintf("<b>%v</b>\nInstructions: \"%v\"\nAI Model: %v\n\n", profile.Name, profile.Instruction, profile.AIModel)
+	}
+	return str
+}
