@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
 	"example/bot/telegram-ai-bot/database"
 	"example/bot/telegram-ai-bot/model"
@@ -10,8 +11,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -50,7 +49,7 @@ func GetAIResponse(chatID int64, input string) string {
 	if err != nil {
 		log.Println("client: error querying the AI: ", err)
 		return ("An error occured while querying the AI.")
-	} else if len(result.Choices) == 0 {
+	} else if len(result.Data.Completion.Choices) == 0 {
 		log.Println("client: error querying the AI: received empty response")
 		log.Println(result)
 
@@ -58,8 +57,8 @@ func GetAIResponse(chatID int64, input string) string {
 
 	}
 	// append the response to the history if valid
-	database.AppendToHistory(result.Choices[0].Message.Content)
-	return result.Choices[0].Message.Content
+	database.AppendToHistory(result.Data.Completion.Choices[0].Message.Content)
+	return result.Data.Completion.Choices[0].Message.Content
 }
 
 func queryAPI(chatID int64, input string) ([]byte, error) {
@@ -89,19 +88,24 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 		return nil, err
 	}
 
-	s := string('"') + strconv.FormatFloat(temp, 'f', -1, 64) + string('"')
+	// s := string('"') + strconv.FormatFloat(temp, 'f', -1, 64) + string('"')
 	// build the request and send it
-	var url string
-	if AIModel == "gpt-4-turbo-preview" {
-		url = "https://api.openai.com/v1/chat/completions"
-		api_key = "Bearer " + os.Getenv("OPENAI_API_KEY")
-		s = strconv.FormatFloat(0.6, 'f', -1, 64) // openai takes between 0 and 1 as temp
-
-	} else {
-		url = "https://api.perplexity.ai/chat/completions"
+	url := "https://api.straico.com/v0/prompt/completion"
+	payloadStruct := struct {
+		Model   string `json:"model"`
+		Message string `json:"message"`
+	}{
+		Model:   AIModel,
+		Message: string(jsonMsg), // Ensure this is a JSON string if that's what the server expects
 	}
-	payload := strings.NewReader("{\"model\":\"" + AIModel + "\",\"messages\":" + string(jsonMsg) + ",\"temperature\": " + s + "}")
+	payloadBytes, err := json.Marshal(payloadStruct)
+	if err != nil {
+		fmt.Printf("client: could not marshal payload: %s\n", err)
+		return nil, err
+	}
 
+	payload := bytes.NewReader(payloadBytes)
+	fmt.Println(string(payloadBytes)) // This will print the correct JSON string
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
 		log.Printf("client: could not create request: %s\n", err)
@@ -124,6 +128,12 @@ func queryAPI(chatID int64, input string) ([]byte, error) {
 		log.Printf("client: error reading response body: %s\n", err)
 		return nil, err
 	}
+
+	if res.StatusCode != 201 {
+		fmt.Printf("client: server responded with status code: %d and body: \n%s\n", res.StatusCode, string(body))
+		return nil, fmt.Errorf("server responded with status code: %d", res.StatusCode)
+	}
+
 	return body, nil
 
 }

@@ -12,22 +12,50 @@ type AIMessage struct {
 	Content string `json:"content"`
 }
 
+type Choice struct {
+	Message      AIMessage `json:"message"`
+	FinishReason string    `json:"finish_reason"`
+}
+
+// Define the struct for completion details
+type Completion struct {
+	Choices []Choice `json:"choices"`
+	Model   string   `json:"model"`
+	ID      string   `json:"id"`
+	Object  string   `json:"object"`
+	Created int64    `json:"created"`
+	Usage   Usage    `json:"usage"`
+}
+
+// Define the struct for usage details
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
+// Define the struct for price details
+type Price struct {
+	Input  float64 `json:"input"`
+	Output float64 `json:"output"`
+	Total  float64 `json:"total"`
+}
+
+// Define the struct for word count
+type Words struct {
+	Input  int `json:"input"`
+	Output int `json:"output"`
+	Total  int `json:"total"`
+}
+
+// Define the main struct that includes all other structs
 type Response struct {
-	Id      string `json:"id"`
-	Model   string `json:"model"`
-	Created int    `json:"created"`
-	Usage   struct {
-		Prompt_tokens     int `json:"prompt_tokens"`
-		Completion_tokens int `json:"completion_tokens"`
-		Total_tokens      int `json:"total_tokens"`
-	}
-	Object  string `json:"object"`
-	Choices []struct {
-		Index         int    `json:"index"`
-		Finish_reason string `json:"finish_reason"`
-		Message       AIMessage
-		Delta         AIMessage
-	}
+	Data struct {
+		Completion Completion `json:"completion"`
+		Price      Price      `json:"price"`
+		Words      Words      `json:"words"`
+	} `json:"data"`
+	Success bool `json:"success"`
 }
 
 type DBResponse struct {
